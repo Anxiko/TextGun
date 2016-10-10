@@ -109,8 +109,8 @@ namespace TextGun
         }
     }
 
-    //Take an iterator to an word on the list, and return another word to swap them so that the list is still sorted. Return the same iterator if no swap is needed
-    std::list< std::pair< int,Word > >::iterator FrecLink::keep_sorted_swap(const std::list< std::pair< int,Word > >::iterator &pos)
+    //Take an iterator to a word on the list, and return another word to swap them so that the list is still sorted. Return the same iterator if no swap is needed
+    std::list< std::pair< int,Word > >::iterator FrecLink::keep_sorted_swap(const std::list< std::pair< int,Word > >::iterator &pos) const
     {
         std::reverse_iterator< std::list< std::pair< int,Word > >::iterator > rev_it(pos);//Reverse operator to start looking at one upper from this one
         /*
@@ -137,6 +137,38 @@ namespace TextGun
         */
 
         return rev_it.base();
+    }
+
+    /*
+        WordNode
+    */
+
+    /* Methods */
+
+    /*Links*/
+
+    //Add a link
+
+    //Add a link to a previous word
+    void WordNode::add_prev(const Word &w)
+    {
+        prev.add_word(w);
+        ++n_prev;
+    }
+
+    //Add a link to a next word
+    void WordNode::add_next(const Word &w)
+    {
+        next.add_word(w);
+        ++n_next;
+    }
+
+    /*Word*/
+
+    //Increase frecuency
+    void WordNode::inc_frec()
+    {
+        ++f;
     }
 
 }//End of namespace

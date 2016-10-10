@@ -125,13 +125,13 @@ namespace TextGun
             //Get
 
             //Get the text
-            const std::string& get_text()
+            const std::string& get_text() const
             {
                 return s;
             }
 
             //Get the type
-            WordType get_type()
+            WordType get_type() const
             {
                 return t;
             }
@@ -186,8 +186,8 @@ namespace TextGun
 
         private:
 
-            //Take an iterator to an word on the list, and return another word to swap them so that the list is still sorted. Return the same iterator if no swap is needed
-             std::list< std::pair< int,Word > >::iterator keep_sorted_swap(const std::list< std::pair< int,Word > >::iterator &it);
+            //Take an iterator to a word on the list, and return another word to swap them so that the list is still sorted. Return the same iterator if no swap is needed
+             std::list< std::pair< int,Word > >::iterator keep_sorted_swap(const std::list< std::pair< int,Word > >::iterator &it) const;
     };
 
     //Node for a word, frecuency and links on both directions
@@ -208,7 +208,7 @@ namespace TextGun
 
             //Data of this node
 
-            Word w;//Word stored on this node
+            const Word w;//Word stored on this node
             int f;//Frecuency of this word
 
         /* Constructors, copy control */
@@ -219,6 +219,30 @@ namespace TextGun
             //Default constructors
             WordNode()=default;
 
+        /* Methods */
+
+        /*Links*/
+        public:
+
+            //Add a link
+
+            //Add a link to a previous word
+            void add_prev(const Word &w);
+
+            //Add a link to a next word
+            void add_next(const Word &w);
+
+        /*Word*/
+        public:
+
+            //Increase frecuency
+            void inc_frec();
+
+            //Get word
+            const Word& get_word() const
+            {
+                return w;
+            }
 
     };
 }//End of namespace
