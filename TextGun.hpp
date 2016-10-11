@@ -42,6 +42,7 @@
 #include <utility>//Pairs
 #include <map>//Maps
 #include <string>//Strings
+#include <istream>//Input stream
 
 /* Defines */
 
@@ -64,6 +65,10 @@ namespace TextGun
     class WordNode;//Node for a word, frecuency and links on both directions
 
     class WordGraph;//Contains the WordNodes, indexed by their Word
+
+    class TextStream;//Provides the Words from a input stream
+
+    class WordModel;//Model capable of learning and speaking
 
     /*
         Function prototypes
@@ -273,10 +278,99 @@ namespace TextGun
             //Check if a word exists (as a node in the graph)
             bool check_word(const Word &w);
 
-            //Add a word, if it doesn't exist. Return whether the node was added or not
-            bool add_word(const Word &w);
+            //Add a word to the node, increase its frecuency if it exists
+            void add_word(const Word &w);
+
+        /*Links*/
+        public:
+
+            //Add a link between two nodes
+            void add_link(const Word &prev, const Word &next);
+    };
+
+    //Provides the Words from a input stream
+    class TextStream
+    {
+        /* Config */
+
+        /*Types*/
+        private:
+
+            enum class StreamState
+            {
+                START,//Feed start word
+                TEXT,//Feed text words from the stream
+                END,//Feed end word
+                EMPTY//Stream is empty, will not provide more words
+            };
+
+        /*Defaults*/
+        private:
+
+            //Word to be returned if an error arises during reading
+            static const Word DEF_ERR_WORD;
+
+        /* Attributes */
+
+        /*Stream*/
+        private:
+
+            //Input stream
+            std::istream &is;
+
+            //Status of the stream
+            StreamState status;
+
+            //Next word to be fed
+            Word nw;
+
+        /* Constructors, copy control */
+
+        /*Constructors*/
+        public:
+
+            //Complete constructor
+            TextStream(std::istream &nis);
+
+        /* Methods */
+
+        /*Stream*/
+        public:
+
+            //Loads the next words from the stream, returns if the stream is ready. Must be called after every read
+            bool has_words();
+
+            //Return the last word read from the stream
+            Word read();
 
     };
+
+    //Model capable of learning and speaking
+    class WordModel
+    {
+        /* Attributes */
+
+        /*Nodes*/
+        private:
+
+            WordGraph graph;//Graph to be trained and to generate sentences
+
+        /* Constructors, copy control */
+
+        /*Constructors*/
+        public:
+
+            WordModel()=default;
+
+        /* Methods */
+
+        /*Learn*/
+        public:
+
+            //Learn from a text stream
+            void learn(TextStream &ts);
+    };
+
 }//End of namespace
 
 //End of library

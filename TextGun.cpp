@@ -194,15 +194,132 @@ namespace TextGun
         return nodes.find(w)!=nodes.end();
     }
 
-    //Add a word, if it doesn't exist. Return whether the node was added or not
-    bool WordGraph::add_word(const Word &w)
+    //Add a word to the node, increase its frecuency if it exists
+    void WordGraph::add_word(const Word &w)
     {
-        if (check_word(w))
-        {
+        auto it=nodes.find(w);
+
+        if (it!=nodes.end())//Add if not found
             nodes.emplace(w,w);
-            return true;
+        else
+            it->second.inc_frec();
+    }
+
+    /*Links*/
+
+    //Add a link between two nodes
+    void WordGraph::add_link(const Word &prev, const Word &next)
+    {
+        //Assuming both nodes alredy exist
+
+        //Add link prev -> next
+        nodes.at(prev).add_next(next);
+        nodes.at(next).add_prev(prev);
+    }
+
+    /*
+        TextStream
+    */
+
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Complete constructor
+    TextStream::TextStream(std::istream &nis)
+    :is(nis),status(StreamState::START),nw("")
+    {}
+
+    /* Methods */
+
+    /*Stream*/
+
+    //Loads the next words from the stream, returns if the stream is ready. Must be called after every read
+    bool TextStream::has_words()
+    {
+        switch(status)
+        {
+            //Load the start word, switch to text
+            case StreamState::START:
+            {
+                nw=Word(WordType::START);
+                status=StreamState::TEXT;
+                return true;
+            }
+
+            //Load a text word, if it fails, switch to the end
+            case StreamState::TEXT:
+            {
+                std::string s;//String to be read
+                if ((is>>s).good())//Try to read
+                {
+                    nw=Word(s);
+                    return true;
+                }
+                else
+                {
+                    //If the word could not be read, let the flow reach to the next case. Do not break or return
+                    status=StreamState::END;
+                }
+            }
+
+            //End of text, stream is now empty
+            case StreamState::END:
+            {
+                nw=Word(WordType::END);
+                status=StreamState::EMPTY;
+                return true;
+            }
+
+            //When the stream is empty or on a invalid state, it has no word
+            case StreamState::EMPTY:
+            default:
+                return false;
         }
-        return false;
+    }
+
+    //Return the last word read from the stream
+    Word TextStream::read()
+    {
+        return nw;
+    }
+
+    /*
+        WordModel
+    */
+
+    /* Methods */
+
+    /*Learn*/
+
+    //Learn from a text stream
+    void WordModel::learn(TextStream &ts)
+    {
+        //Load the first word
+        if (ts.has_words())
+        {
+            Word w=ts.read();//Word to be processed
+            graph.add_word(w);//Add it to the graph
+
+            //Read the rest on a loop
+            Word prev=w;//Previous word to be processed
+
+            //While the stream has words
+            while (ts.has_words())
+            {
+                //Read the word
+                w=ts.read();
+
+                //Add the word
+                graph.add_word(w);
+
+                //Add the links
+                graph.add_link(prev,w);
+
+                //Store the current word on previous
+                prev=w;
+            }
+        }
     }
 
 }//End of namespace
