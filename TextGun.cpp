@@ -143,6 +143,15 @@ namespace TextGun
         WordNode
     */
 
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Complete constructor
+    WordNode::WordNode(const Word &nw)
+    :prev(),next(),n_prev(0),n_next(0),w(nw),f(1)
+    {}
+
     /* Methods */
 
     /*Links*/
@@ -169,6 +178,31 @@ namespace TextGun
     void WordNode::inc_frec()
     {
         ++f;
+    }
+
+    /*
+        WordGraph
+    */
+
+    /* Methods */
+
+    /*Nodes*/
+
+    //Check if a word exists (as a node in the graph)
+    bool WordGraph::check_word(const Word &w)
+    {
+        return nodes.find(w)!=nodes.end();
+    }
+
+    //Add a word, if it doesn't exist. Return whether the node was added or not
+    bool WordGraph::add_word(const Word &w)
+    {
+        if (check_word(w))
+        {
+            nodes.emplace(w,w);
+            return true;
+        }
+        return false;
     }
 
 }//End of namespace

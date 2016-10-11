@@ -63,6 +63,8 @@ namespace TextGun
 
     class WordNode;//Node for a word, frecuency and links on both directions
 
+    class WordGraph;//Contains the WordNodes, indexed by their Word
+
     /*
         Function prototypes
     */
@@ -216,8 +218,8 @@ namespace TextGun
         /*Constructors*/
         public:
 
-            //Default constructors
-            WordNode()=default;
+            //Complete constructor
+            WordNode(const Word &nw);
 
         /* Methods */
 
@@ -243,6 +245,36 @@ namespace TextGun
             {
                 return w;
             }
+
+    };
+
+
+    //Contains the WordNodes, indexed by their Word
+    class WordGraph
+    {
+        /* Attributes */
+
+        /*Nodes*/
+        private:
+
+            std::map< Word,WordNode > nodes;//Nodes indexed by their word
+
+        /* Constructors, copy control */
+        public:
+
+            //Default constructor
+            WordGraph()=default;
+
+        /* Methods */
+
+        /*Nodes*/
+        public:
+
+            //Check if a word exists (as a node in the graph)
+            bool check_word(const Word &w);
+
+            //Add a word, if it doesn't exist. Return whether the node was added or not
+            bool add_word(const Word &w);
 
     };
 }//End of namespace
