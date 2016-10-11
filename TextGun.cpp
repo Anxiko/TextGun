@@ -199,9 +199,9 @@ namespace TextGun
     {
         auto it=nodes.find(w);
 
-        if (it!=nodes.end())//Add if not found
+        if (it==nodes.end())//Add if not found
             nodes.emplace(w,w);
-        else
+        else//If found, increase
             it->second.inc_frec();
     }
 
