@@ -320,8 +320,9 @@ namespace TextGun
             case StreamState::TEXT:
             {
                 std::string s;//String to be read
-                if ((is>>s).good())//Try to read
+                if (is.good())//Try to read
                 {
+                    is >> s;
                     nw=Word(s);
                     return true;
                 }
