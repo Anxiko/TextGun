@@ -43,6 +43,9 @@
 #include <map>//Maps
 #include <string>//Strings
 #include <istream>//Input stream
+#include <sstream>//String stream
+#include <random>//Random number generation
+#include <chrono>
 
 /* Defines */
 
@@ -124,6 +127,12 @@ namespace TextGun
             //Less than operator, needed for mapping
             bool operator<(const Word &w) const;
 
+            //Equality operator
+            bool operator==(const Word &w) const;
+
+            //Inequality operator
+            bool operator!=(const Word &w) const;
+
         /* Methods */
 
         /*Get/set*/
@@ -164,6 +173,14 @@ namespace TextGun
     //List of links to nodes sorted based on their frecuency
     class FrecLink
     {
+        /* Config */
+
+        /*Random*/
+        private:
+
+            //Random engine
+            static std::default_random_engine re;
+
         /* Attributes */
 
         /*Links*/
@@ -174,6 +191,9 @@ namespace TextGun
 
             //Dictionary that stores the position of each word on the list
             std::map< Word,std::list< std::pair< int,Word > >::iterator > dict;
+
+            //Total number of links (sum of frec)
+            int f;
 
         /* Constructors, copy control */
 
@@ -195,6 +215,13 @@ namespace TextGun
 
             //Take an iterator to a word on the list, and return another word to swap them so that the list is still sorted. Return the same iterator if no swap is needed
              std::list< std::pair< int,Word > >::iterator keep_sorted_swap(const std::list< std::pair< int,Word > >::iterator &it) const;
+
+        /*Links*/
+        public:
+
+            //Get a random word based on frecuency
+            Word get_rand() const;
+
     };
 
     //Node for a word, frecuency and links on both directions
@@ -205,10 +232,7 @@ namespace TextGun
         /*Links*/
         private:
 
-            //Links to the wordnodes found before this one, and after this one
-
-            FrecLink prev,next;//List of nodes
-            int n_prev,n_next;//Total frecuency of links
+            FrecLink prev,next;//Links to the wordnodes found before this one, and after this one
 
         /*Data*/
         public:
@@ -238,6 +262,14 @@ namespace TextGun
 
             //Add a link to a next word
             void add_next(const Word &w);
+
+            //Get a random word
+
+            //Get a random previous word
+            Word get_prev() const;
+
+            //Get a random next word
+            Word get_next() const;
 
         /*Word*/
         public:
@@ -280,6 +312,9 @@ namespace TextGun
 
             //Add a word to the node, increase its frecuency if it exists
             void add_word(const Word &w);
+
+            //Get a node by pointer, nullptr if not found
+            WordNode* get_node(const Word &w);
 
         /*Links*/
         public:
@@ -369,6 +404,12 @@ namespace TextGun
 
             //Learn from a text stream
             void learn(TextStream &ts);
+
+        /*Speak*/
+        public:
+
+            //Generate a line using the model
+            std::string think();
     };
 
 }//End of namespace

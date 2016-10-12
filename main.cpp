@@ -7,6 +7,8 @@
 
 #include <sstream>//String stream
 
+#include <iostream>//Print to console
+
 //File to open
 const std::string FILE_NAME("TextLearning.txt");
 
@@ -21,6 +23,8 @@ int main()
         TextGun::TextStream ts(ss);//Create a text stream
         model.learn(ts);//Learn from this line
     }
+
+    std::cout<<model.think();
 
     return 0;
 }

@@ -39,6 +39,14 @@
 namespace TextGun
 {
     /*
+        Init
+    */
+
+    /* FrecLink */
+
+    std::default_random_engine FrecLink::re(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));//Random engine
+
+    /*
             Functions
     */
 
@@ -77,6 +85,18 @@ namespace TextGun
         return s<w.s;
     }
 
+    //Equality operator
+    bool Word::operator==(const Word &w) const
+    {
+        return (t==w.t)&&(s==w.s);
+    }
+
+    //Inequality operator
+    bool Word::operator!=(const Word &w) const
+    {
+        return !operator==(w);
+    }
+
     /*
         FrecLink
     */
@@ -88,6 +108,8 @@ namespace TextGun
     //Add a word to the list
     void FrecLink::add_word(const Word &w)
     {
+        ++f;//Increase the frecuency of total links
+
         //Check if the word is on the list
         if (dict.find(w)==dict.end())//Not found
         {
@@ -139,6 +161,30 @@ namespace TextGun
         return rev_it.base();
     }
 
+    /*Links*/
+
+    //Get a random word based on frecuency
+    Word FrecLink::get_rand() const
+    {
+        //Create the RNG to use it with the engine
+        std::uniform_int_distribution<> dt(0,f-1);
+
+        //Random number generated
+        int n=dt(re);
+
+        //Navigate through the links until the goal number is met
+        for (std::pair< int,Word > w : words)
+        {
+            n-=w.first;//Decrease the goal by this word's frecuency
+
+            if(n<0)//If the goal is met, return this word
+                return w.second;
+        }
+
+        //If no word is found, an error just happened
+        return Word(WordType::END);//Should throw an exception, by the time being the END world will be returned. Note that the word END is valid
+    }
+
     /*
         WordNode
     */
@@ -149,7 +195,7 @@ namespace TextGun
 
     //Complete constructor
     WordNode::WordNode(const Word &nw)
-    :prev(),next(),n_prev(0),n_next(0),w(nw),f(1)
+    :prev(),next(),w(nw),f(1)
     {}
 
     /* Methods */
@@ -162,14 +208,26 @@ namespace TextGun
     void WordNode::add_prev(const Word &w)
     {
         prev.add_word(w);
-        ++n_prev;
     }
 
     //Add a link to a next word
     void WordNode::add_next(const Word &w)
     {
         next.add_word(w);
-        ++n_next;
+    }
+
+    //Get a random word
+
+    //Get a random previous word
+    Word WordNode::get_prev() const
+    {
+        return prev.get_rand();
+    }
+
+    //Get a random next word
+    Word WordNode::get_next() const
+    {
+        return next.get_rand();
     }
 
     /*Word*/
@@ -203,6 +261,17 @@ namespace TextGun
             nodes.emplace(w,w);
         else//If found, increase
             it->second.inc_frec();
+    }
+
+    //Get a node by pointer, nullptr if not found
+    WordNode* WordGraph::get_node(const Word &w)
+    {
+        if(check_word(w))
+        {
+            WordNode &node=nodes.at(w);
+            return &node;
+        }
+        return nullptr;
     }
 
     /*Links*/
@@ -320,6 +389,38 @@ namespace TextGun
                 prev=w;
             }
         }
+    }
+
+    /*Speak*/
+
+    //Generate a line using the model
+    std::string WordModel::think()
+    {
+        std::stringstream ss;//Stream to write the line built by the model
+
+        //Make sure the start and end node exist
+
+        if (!graph.check_word(Word(WordType::START)))
+            graph.add_word(Word(WordType::START));
+
+        if (!graph.check_word(Word(WordType::END)))
+            graph.add_word(Word(WordType::END));
+
+        WordNode *node=graph.get_node(Word(WordType::START));//The first node to be processed is the start node
+
+        const Word end_word(WordType::END);
+
+
+        while(node&&node->get_word()!=end_word)//Until the end node is reached
+        {
+            ss<<node->get_word().get_text()<<' ';//Print this node
+
+            //Advance to next
+            node=graph.get_node(node->get_next().get_text());
+
+        }
+
+        return ss.str();
     }
 
 }//End of namespace
