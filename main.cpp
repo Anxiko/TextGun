@@ -24,7 +24,14 @@ int main()
         model.learn(ts);//Learn from this line
     }
 
-    std::cout<<model.think();
+    std::string answer;
+    do
+    {
+        std::cout<<model.think()<<std::endl;
+        std::cout<<"Quit?[y/N]: ";
+        std::getline(std::cin,answer);
+    }
+    while(answer!=std::string("y"));
 
     return 0;
 }
