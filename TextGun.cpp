@@ -417,7 +417,7 @@ namespace TextGun
             ss<<node->get_word().get_text()<<' ';//Print this node
 
             //Advance to next
-            node=graph.get_node(node->get_next().get_text());
+            node=graph.get_node(node->get_next());
 
         }
 
