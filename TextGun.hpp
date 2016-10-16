@@ -174,7 +174,7 @@ namespace TextGun
         public:
 
             //Write word to stream
-            void write(std::ostream &o);
+            void write(std::ostream &o) const;
 
             //Read word to stream
             void read(std::istream &i);
@@ -203,8 +203,11 @@ namespace TextGun
             //Dictionary that stores the position of each word on the list
             std::map< Word,std::list< std::pair< int,Word > >::iterator > dict;
 
-            //Total number of links (sum of frec)
+            //Total number of words (sum of frec)
             int f;
+
+            //Total number of links
+            int n;
 
         /* Constructors, copy control */
 
@@ -237,10 +240,10 @@ namespace TextGun
         public:
 
             //Write word to stream
-            void write(std::ostream &o, int n_words);
+            void write(std::ostream &o) const;
 
             //Read word to stream
-            void read(std::istream &i, int n_words);
+            void read(std::istream &i);
     };
 
     //Node for a word, frecuency and links on both directions
@@ -258,7 +261,7 @@ namespace TextGun
 
             //Data of this node
 
-            const Word w;//Word stored on this node
+            Word w;//Word stored on this node
             int f;//Frecuency of this word
 
         /* Constructors, copy control */
@@ -302,6 +305,15 @@ namespace TextGun
                 return w;
             }
 
+        /*Read/write to file*/
+        public:
+
+            //Write to file
+            void write(std::ostream &o) const;
+
+            //Read from file
+            void read(std::istream &i);
+
     };
 
 
@@ -314,6 +326,7 @@ namespace TextGun
         private:
 
             std::map< Word,WordNode > nodes;//Nodes indexed by their word
+            int n;//Number of nodes
 
         /* Constructors, copy control */
         public:
@@ -340,6 +353,15 @@ namespace TextGun
 
             //Add a link between two nodes
             void add_link(const Word &prev, const Word &next);
+
+        /*Read/write to file*/
+        public:
+
+            //Write to file
+            void write(std::ostream &o) const;
+
+            //Read from file
+            void read(std::istream &i);
     };
 
     //Provides the Words from a input stream
