@@ -46,6 +46,8 @@
 #include <sstream>//String stream
 #include <random>//Random number generation
 #include <chrono>
+#include <ostream>//Writing to file
+#include <istream>//Reading from file
 
 /* Defines */
 
@@ -59,7 +61,7 @@ namespace TextGun
         Class definitions
     */
 
-    enum class WordType;//Type of a word
+    enum class WordType : char;//Type of a word
 
     class Word;//Stores a word, indicates if it's special
 
@@ -86,7 +88,7 @@ namespace TextGun
     /* Classes */
 
     //Type of a word
-    enum class WordType
+    enum class WordType : char
     {
         START=0,//Start of text
         WORD,//Text word
@@ -168,6 +170,15 @@ namespace TextGun
                 t=nt;
             }
 
+        /*Read/write to file*/
+        public:
+
+            //Write word to stream
+            void write(std::ostream &o);
+
+            //Read word to stream
+            void read(std::istream &i);
+
     };
 
     //List of links to nodes sorted based on their frecuency
@@ -222,6 +233,14 @@ namespace TextGun
             //Get a random word based on frecuency
             Word get_rand() const;
 
+        /*Read/write to file*/
+        public:
+
+            //Write word to stream
+            void write(std::ostream &o, int n_words);
+
+            //Read word to stream
+            void read(std::istream &i, int n_words);
     };
 
     //Node for a word, frecuency and links on both directions

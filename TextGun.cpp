@@ -97,6 +97,48 @@ namespace TextGun
         return !operator==(w);
     }
 
+    /* Methods */
+
+    /*Read/write to file*/
+
+    //Write word to stream
+    void Word::write(std::ostream &o)
+    {
+        //Write the type of the word
+        o.write(reinterpret_cast<char *>(&t),sizeof(char));
+
+        //Write the number of bytes of the string
+        std::string::size_type sz=s.size();
+        o.write(reinterpret_cast<char *>(&sz),sizeof(int));
+
+        //Write the string
+        o.write(s.c_str(),sz);
+    }
+
+    //Read word to stream
+    void Word::read(std::istream &i)
+    {
+        //Read the type of the word
+        i.read(reinterpret_cast<char *>(&t),sizeof(char));
+
+        //Read the number of bytes
+        std::string::size_type sz;
+        i.read(reinterpret_cast<char *>(&sz),sizeof(std::string::size_type));
+
+        //Create a buffer
+        char *str=new char[sz+1];
+
+        //Read to buffer
+        i.read(str,sz);
+        str[sz]='\0';//Ensure null terminated
+
+        //Put into string
+        s=std::string(str);
+
+        //Delete buffer
+        delete[] str;
+    }
+
     /*
         FrecLink
     */
@@ -183,6 +225,33 @@ namespace TextGun
 
         //If no word is found, an error just happened
         return Word(WordType::END);//Should throw an exception, by the time being the END world will be returned. Note that the word END is valid
+    }
+
+    /*Read/write to file*/
+
+    //Write word to stream
+    void FrecLink::write(std::ostream &o, int n_words)
+    {
+        //Write the number of entries
+        o.write(reinterpret_cast<char *>(&n_words),sizeof(int));
+        //Write the sum of the frecuencies
+        o.write(reinterpret_cast<char *>(&f),sizeof(int));
+
+        //Write the list
+        for(std::pair< int,Word > &p : words)
+        {
+            //Write the frec
+            o.write(reinterpret_cast<char *>(&p.first),sizeof(int));
+
+            //Write the word
+            p.second.write(o);
+        }
+    }
+
+    //Read word to stream
+    void FrecLink::read(std::istream &i, int n_words)
+    {
+
     }
 
     /*
