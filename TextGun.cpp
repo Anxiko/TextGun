@@ -593,4 +593,18 @@ namespace TextGun
         return ss.str();
     }
 
+    /*Read/write to file*/
+
+    //Write to file
+    void WordModel::write(std::ostream &o) const
+    {
+        graph.write(o);
+    }
+
+    //Read from file
+    void WordModel::read(std::istream &i)
+    {
+        graph.read(i);
+    }
+
 }//End of namespace

@@ -451,6 +451,15 @@ namespace TextGun
 
             //Generate a line using the model
             std::string think();
+
+        /*Read/write to file*/
+        public:
+
+            //Write to file
+            void write(std::ostream &o) const;
+
+            //Read from file
+            void read(std::istream &i);
     };
 
 }//End of namespace
