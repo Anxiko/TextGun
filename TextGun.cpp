@@ -97,6 +97,48 @@ namespace TextGun
         return !operator==(w);
     }
 
+    /* Methods */
+
+    /*Read/write to file*/
+
+    //Write word to stream
+    void Word::write(std::ostream &o) const
+    {
+        //Write the type of the word
+        o.write(reinterpret_cast<const char *>(&t),sizeof(char));
+
+        //Write the number of bytes of the string
+        std::string::size_type sz=s.size();
+        o.write(reinterpret_cast<const char *>(&sz),sizeof(int));
+
+        //Write the string
+        o.write(s.c_str(),sz);
+    }
+
+    //Read word to stream
+    void Word::read(std::istream &i)
+    {
+        //Read the type of the word
+        i.read(reinterpret_cast<char *>(&t),sizeof(char));
+
+        //Read the number of bytes
+        std::string::size_type sz;
+        i.read(reinterpret_cast<char *>(&sz),sizeof(std::string::size_type));
+
+        //Create a buffer
+        char *str=new char[sz+1];
+
+        //Read to buffer
+        i.read(str,sz);
+        str[sz]='\0';//Ensure null terminated
+
+        //Put into string
+        s=std::string(str);
+
+        //Delete buffer
+        delete[] str;
+    }
+
     /*
         FrecLink
     */
@@ -117,6 +159,8 @@ namespace TextGun
             words.emplace_back(1,w);
             //Add the word to the dictionary
             dict[w]=std::prev(words.end());//Save the iterator to the last element of the list, where the word is now saved
+
+            ++n;//A new node on the list
         }
         else//Found
         {
@@ -185,6 +229,59 @@ namespace TextGun
         return Word(WordType::END);//Should throw an exception, by the time being the END world will be returned. Note that the word END is valid
     }
 
+    /*Read/write to file*/
+
+    //Write word to stream
+    void FrecLink::write(std::ostream &o) const
+    {
+        //Write the number of entries
+        o.write(reinterpret_cast<const char *>(&n),sizeof(int));
+        //Write the sum of the frecuencies
+        o.write(reinterpret_cast<const char *>(&f),sizeof(int));
+
+        //Write the list
+        for(const std::pair< int,Word > &p : words)
+        {
+            //Write the frec
+            o.write(reinterpret_cast<const char *>(&p.first),sizeof(int));
+
+            //Write the word
+            p.second.write(o);
+        }
+    }
+
+    //Read word to stream
+    void FrecLink::read(std::istream &i)
+    {
+        //Read number of entries
+        n=0;//Set to zero in case of fail reading
+        i.read(reinterpret_cast<char *>(&n),sizeof(int));
+        //Read the sum of the frecuencies
+        i.read(reinterpret_cast<char *>(&f),sizeof(int));
+
+        //Iterator to insert
+        auto it=words.begin()==words.end()?words.begin():std::prev(words.end());//This list should always be empty, just to make sure, start at the end
+
+        //Read the list
+        int iters=n;
+        while(iters-->0)//Read all the entries
+        {
+            //Read the frec
+            int word_frec=0;
+            i.read(reinterpret_cast<char *>(&word_frec),sizeof(int));
+
+            //Read the word
+            Word w("");
+            w.read(i);
+
+            //Insert the word on the list
+            it=words.emplace(it,word_frec,w);
+
+            //Insert the word on the map
+            dict[w]=it++;//Increment the iterator after inserting, as to keep inserting after the end
+        }
+    }
+
     /*
         WordNode
     */
@@ -238,6 +335,40 @@ namespace TextGun
         ++f;
     }
 
+    /*Read/write to file*/
+
+    //Write to file
+    void WordNode::write(std::ostream &o) const
+    {
+        //Write the word of the node
+        w.write(o);
+
+        //Write the frecuency
+        o.write(reinterpret_cast<const char *>(&f),sizeof(int));
+
+        //Write the links to previous words
+        prev.write(o);
+
+        //Write the links to next words
+        next.write(o);
+    }
+
+    //Read from file
+    void WordNode::read(std::istream &i)
+    {
+        //Read the word of the node
+        w.read(i);
+
+        //Read the frecuency
+        i.read(reinterpret_cast<char *>(&f),sizeof(int));
+
+        //Read the links to previous words
+        prev.read(i);
+
+        //Read the links to next words
+        next.read(i);
+    }
+
     /*
         WordGraph
     */
@@ -258,7 +389,10 @@ namespace TextGun
         auto it=nodes.find(w);
 
         if (it==nodes.end())//Add if not found
+        {
             nodes.emplace(w,w);
+            ++n;
+        }
         else//If found, increase
             it->second.inc_frec();
     }
@@ -284,6 +418,41 @@ namespace TextGun
         //Add link prev -> next
         nodes.at(prev).add_next(next);
         nodes.at(next).add_prev(prev);
+    }
+
+    /*Read/write to file*/
+
+    //Write to file
+    void WordGraph::write(std::ostream &o) const
+    {
+        //Write the number of words
+        o.write(reinterpret_cast<const char *>(&n),sizeof(int));
+
+        //Write all the nodes
+        for(const std::pair< const Word, const WordNode > &n : nodes)
+            n.second.write(o);
+    }
+
+    //Read from file
+    void WordGraph::read(std::istream &i)
+    {
+        //Read the number of words
+        n=0;
+        i.read(reinterpret_cast<char *>(&n),sizeof(int));
+
+        //Read the words
+        int iters=n;
+        while(iters-->0)//Read all the words
+        {
+            //Node to read
+            WordNode wn(Word(""));
+
+            //Read the node
+            wn.read(i);
+
+            //Insert the node on the map, indexed by its word
+            nodes.insert(std::pair< Word,WordNode >(wn.get_word(),wn));
+        }
     }
 
     /*
@@ -422,6 +591,20 @@ namespace TextGun
         }
 
         return ss.str();
+    }
+
+    /*Read/write to file*/
+
+    //Write to file
+    void WordModel::write(std::ostream &o) const
+    {
+        graph.write(o);
+    }
+
+    //Read from file
+    void WordModel::read(std::istream &i)
+    {
+        graph.read(i);
     }
 
 }//End of namespace

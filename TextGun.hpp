@@ -46,6 +46,8 @@
 #include <sstream>//String stream
 #include <random>//Random number generation
 #include <chrono>
+#include <ostream>//Writing to file
+#include <istream>//Reading from file
 
 /* Defines */
 
@@ -59,7 +61,7 @@ namespace TextGun
         Class definitions
     */
 
-    enum class WordType;//Type of a word
+    enum class WordType : char;//Type of a word
 
     class Word;//Stores a word, indicates if it's special
 
@@ -86,7 +88,7 @@ namespace TextGun
     /* Classes */
 
     //Type of a word
-    enum class WordType
+    enum class WordType : char
     {
         START=0,//Start of text
         WORD,//Text word
@@ -168,6 +170,15 @@ namespace TextGun
                 t=nt;
             }
 
+        /*Read/write to file*/
+        public:
+
+            //Write word to stream
+            void write(std::ostream &o) const;
+
+            //Read word to stream
+            void read(std::istream &i);
+
     };
 
     //List of links to nodes sorted based on their frecuency
@@ -192,8 +203,11 @@ namespace TextGun
             //Dictionary that stores the position of each word on the list
             std::map< Word,std::list< std::pair< int,Word > >::iterator > dict;
 
-            //Total number of links (sum of frec)
+            //Total number of words (sum of frec)
             int f;
+
+            //Total number of links
+            int n;
 
         /* Constructors, copy control */
 
@@ -222,6 +236,14 @@ namespace TextGun
             //Get a random word based on frecuency
             Word get_rand() const;
 
+        /*Read/write to file*/
+        public:
+
+            //Write word to stream
+            void write(std::ostream &o) const;
+
+            //Read word to stream
+            void read(std::istream &i);
     };
 
     //Node for a word, frecuency and links on both directions
@@ -239,7 +261,7 @@ namespace TextGun
 
             //Data of this node
 
-            const Word w;//Word stored on this node
+            Word w;//Word stored on this node
             int f;//Frecuency of this word
 
         /* Constructors, copy control */
@@ -283,6 +305,15 @@ namespace TextGun
                 return w;
             }
 
+        /*Read/write to file*/
+        public:
+
+            //Write to file
+            void write(std::ostream &o) const;
+
+            //Read from file
+            void read(std::istream &i);
+
     };
 
 
@@ -295,6 +326,7 @@ namespace TextGun
         private:
 
             std::map< Word,WordNode > nodes;//Nodes indexed by their word
+            int n;//Number of nodes
 
         /* Constructors, copy control */
         public:
@@ -321,6 +353,15 @@ namespace TextGun
 
             //Add a link between two nodes
             void add_link(const Word &prev, const Word &next);
+
+        /*Read/write to file*/
+        public:
+
+            //Write to file
+            void write(std::ostream &o) const;
+
+            //Read from file
+            void read(std::istream &i);
     };
 
     //Provides the Words from a input stream
@@ -410,6 +451,15 @@ namespace TextGun
 
             //Generate a line using the model
             std::string think();
+
+        /*Read/write to file*/
+        public:
+
+            //Write to file
+            void write(std::ostream &o) const;
+
+            //Read from file
+            void read(std::istream &i);
     };
 
 }//End of namespace
