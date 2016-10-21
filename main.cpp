@@ -31,6 +31,12 @@ Options menu();
 //Make a yes/no question
 bool questYN(const std::string &s, bool def);
 
+//Read a word containing the name of a file on the current path
+std::string read_filename();
+
+//Read a complete line, except the new line character
+std::string read_line();
+
 int main()
 {
     //Flags to control program flow
@@ -51,9 +57,7 @@ int main()
 		    {
 		        //Read the line
 		        std::cout<<"Input line to learn: ";
-		        std::string s;
-		        std::getline(std::cin,s);
-		        std::cin.ignore();
+		        std::string s=read_line();
 
 		        //Feed the line to the model
 		        std::stringstream ss(s);
@@ -87,8 +91,7 @@ int main()
 
 				    //Path of file to read
 				    std::cout<<"File to read: ";
-				    std::string file;
-				    std::cin>>file;
+				    std::string file=read_filename();
 
 				    //Try to open the file
 				    std::ifstream input(file,std::ios::in|std::ios::binary);
@@ -109,8 +112,7 @@ int main()
 		    {
 		        //Path of file to write
 		        std::cout<<"File to write: ";
-		        std::string file;
-		        std::cin>>file;
+		        std::string file=read_filename();
 
 		        //Try to open the file
 		        std::ofstream output(file,std::ios::out|std::ios::binary|std::ios::trunc);
@@ -165,7 +167,7 @@ Options menu()
     std::cout<<"Option => ";
 
     std::string opt;
-    std::cin>>opt;
+    std::getline(std::cin,opt);
     int x;
 
     //Parse the string to int, errors may occur
@@ -192,7 +194,6 @@ bool questYN(const std::string &s, bool def)
         std::cout<<s<<(def?"[Y/n]":"[y/N]")<<": ";
         std::string s;
         std::getline(std::cin,s);
-        std::cin.ignore();
 
         if (s=="y"||s=="Y")
             return true;
@@ -202,4 +203,23 @@ bool questYN(const std::string &s, bool def)
             return def;
         std::cout<<"ERROR: Invalid option. Please use y,Y,n,N or a blank line for default value\n";
     }
+}
+
+
+//Read a word containing the name of a file on the current path
+std::string read_filename()
+{
+    std::string s;
+    std::getline(std::cin,s);
+    
+    return std::move(s);
+}
+
+//Read a complete line, except the new line character
+std::string read_line()
+{
+    std::string s;
+    std::getline(std::cin,s);
+    
+    return std::move(s);
 }
