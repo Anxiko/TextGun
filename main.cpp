@@ -9,29 +9,197 @@
 
 #include <iostream>//Print to console
 
-//File to open
-const std::string FILE_NAME("TextLearning.txt");
+#include <exception>//Exception handling
+
+//Number of options
+enum Options: int
+{
+    START=0,//Start of valid options
+    LISTEN,//Read a single line from standard input
+    THINK,//Produce output
+    READ,//Read model from file
+    WRITE,//Write the model to file
+    LEARN,//Learn model from file
+    EXIT,//Exit the program
+    ERROR,//Invalid option
+    END//End of valid values
+};
+
+//Print menu, and return picked option
+Options menu();
+
+//Make a yes/no question
+bool questYN(const std::string &s, bool def);
 
 int main()
 {
-    TextGun::WordModel model;//Model to be trained
-    std::ifstream txt_stream(FILE_NAME);//Open the file with the text
-    std::string buffer;//Hold the last read line
-    while(std::getline(txt_stream,buffer))//Load a line from the file
+    //Flags to control program flow
+    bool in=true;//Stay in the program loop
+
+    bool unsaved_changes=false;//Changes to be saved
+    bool empty_model=true;//Model is completly empty
+
+    //Model
+    TextGun::WordModel model;//TextGun model
+
+	while(in)
+	{
+		switch(menu())
+		{
+		    //Learn a line from standard input
+		    case Options::LISTEN:
+		    {
+		        //Read the line
+		        std::cout<<"Input line to learn: ";
+		        std::string s;
+		        std::getline(std::cin,s);
+		        std::cin.ignore();
+
+		        //Feed the line to the model
+		        std::stringstream ss(s);
+		        TextGun::TextStream ts(ss);
+		        model.learn(ts);
+
+		        //Adjust the flags
+		        unsaved_changes=true;
+		        empty_model=false;
+
+		        break;
+		    }
+
+		    case Options::THINK:
+		    {
+		        //Print lines until users requests to stop
+		        do
+		        {
+		            std::cout<<model.think()<<'\n';
+		        }while(!questYN("Quit?",false));
+		        break;
+		    }
+
+		    case Options::READ:
+		    {
+		        if (!empty_model)
+		            std::cout<<"ERROR! Cannot read from file because model isn't empty. Reopen the program, and read the file\n";
+				
+				else
+				{
+
+				    //Path of file to read
+				    std::cout<<"File to read: ";
+				    std::string file;
+				    std::cin>>file;
+
+				    //Try to open the file
+				    std::ifstream input(file,std::ios::in|std::ios::binary);
+				    if(input.is_open())//If the file is open, save
+				    {
+				    	model.read(input);
+				    	unsaved_changes=true;
+				    	empty_model=false;
+				    }
+				    else
+				        std::cout<<"ERROR: reading from file "<<file<<'\n';
+				}
+
+		        break;
+		    }
+
+		    case Options::WRITE:
+		    {
+		        //Path of file to write
+		        std::cout<<"File to write: ";
+		        std::string file;
+		        std::cin>>file;
+
+		        //Try to open the file
+		        std::ofstream output(file,std::ios::out|std::ios::binary|std::ios::trunc);
+		        if(output.is_open())//If the file is open, write
+		        {
+		            if (unsaved_changes)//If there are unsaved changes, go ahead
+		            {
+		            	model.write(output);
+		            	unsaved_changes=false;
+		            }
+		            else//If there are no changes, no need to save
+		                std::cout<<"No need to save anything!\n";
+		        }
+		        else
+		            std::cout<<"ERROR: saving to file "<<file<<'\n';
+
+		        break;
+		    }
+
+		    //Exit the program
+		    case Options::EXIT:
+		    {
+		        if(questYN("Close the program?",false))
+		            in=false;
+
+		        break;
+		    }
+
+		    case Options::ERROR:
+		    default:
+		    {
+		        std::cout<<"ERROR!\n";
+		        break;
+		    }
+		}
+	}
+	
+	return 0;
+}
+
+//Print menu, and return picked option
+Options menu()
+{
+    std::cout<<"Menu\n";
+
+    std::cout<<'['<<Options::LISTEN<<']'<<" Listen - read and learn one line from console input\n";
+    std::cout<<'['<<Options::THINK<<']'<<" Think - generate output\n";
+    std::cout<<'['<<Options::READ<<']'<<" Read - read a binary file of a previously saved model\n";
+    std::cout<<'['<<Options::WRITE<<']'<<" Write - write current model to binary format\n";
+    std::cout<<'['<<Options::LEARN<<']'<<" Learn - generate a model from a text file (one entry per new line, no empty lines)\n";
+    std::cout<<'['<<Options::EXIT<<']'<<" Exit - leave the program\n";
+    std::cout<<"Option => ";
+
+    std::string opt;
+    std::cin>>opt;
+    int x;
+
+    //Parse the string to int, errors may occur
+    try
     {
-        std::stringstream ss(buffer);//Create a string stream
-        TextGun::TextStream ts(ss);//Create a text stream
-        model.learn(ts);//Learn from this line
+        x=std::stoi(opt);
+    }
+    catch(std::exception &e)
+    {
+        x=Options::ERROR;
     }
 
-    std::string answer;
-    do
-    {
-        std::cout<<model.think()<<std::endl;
-        std::cout<<"Quit?[y/N]: ";
-        std::getline(std::cin,answer);
-    }
-    while(answer!=std::string("y"));
+    if (x<=Options::START||x>=Options::END)
+        x=Options::ERROR;
 
-    return 0;
+    return static_cast<Options>(x);
+}
+
+//Make a yes/no question
+bool questYN(const std::string &s, bool def)
+{
+    for(;;)
+    {
+        std::cout<<s<<(def?"[Y/n]":"[y/N]")<<": ";
+        std::string s;
+        std::getline(std::cin,s);
+        std::cin.ignore();
+
+        if (s=="y"||s=="Y")
+            return true;
+        if (s=="n"||s=="N")
+            return false;
+        if (s=="")
+            return def;
+        std::cout<<"ERROR: Invalid option. Please use y,Y,n,N or a blank line for default value\n";
+    }
 }
