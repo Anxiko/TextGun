@@ -140,7 +140,7 @@ int main()
                     std::string file=read_filename();
 
                     //Try to open the file
-                    std::ifstream input(file);
+                    std::ifstream input(file,std::ios::in|std::ios::binary);
                     if(input.is_open())//If the file is open, read it
                     {
                         //Read the file, line by line
