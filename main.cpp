@@ -190,12 +190,12 @@ Options menu()
 {
     std::cout<<"Menu\n";
 
-    std::cout<<'['<<Options::LISTEN<<']'<<" Listen - read and learn one line from console input\n";
-    std::cout<<'['<<Options::THINK<<']'<<" Think - generate output\n";
-    std::cout<<'['<<Options::READ<<']'<<" Read - read a binary file of a previously saved model\n";
-    std::cout<<'['<<Options::WRITE<<']'<<" Write - write current model to binary format\n";
-    std::cout<<'['<<Options::LEARN<<']'<<" Learn - generate a model from a text file (one entry per new line, no empty lines)\n";
-    std::cout<<'['<<Options::EXIT<<']'<<" Exit - leave the program\n";
+    std::cout<<'['<<Options::LISTEN<<']'<<" Listen \t- read and learn one line from console input\n";
+    std::cout<<'['<<Options::THINK<<']'<<" Think \t- generate output\n\n";
+    std::cout<<'['<<Options::READ<<']'<<" Read \t- read a binary file of a previously saved model\n";
+    std::cout<<'['<<Options::WRITE<<']'<<" Write \t- write current model to binary format\n";
+    std::cout<<'['<<Options::LEARN<<']'<<" Learn \t- generate a model from a text file (one entry per new line, no empty lines)\n\n";
+    std::cout<<'['<<Options::EXIT<<']'<<" Exit \t- leave the program\n";
     std::cout<<"Option => ";
 
     std::string opt;
