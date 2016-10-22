@@ -215,7 +215,7 @@ namespace TextGun
         public:
 
             //Default constructors
-            FrecLink()=default;
+            FrecLink();
 
         /* Methods */
 
@@ -329,10 +329,12 @@ namespace TextGun
             int n;//Number of nodes
 
         /* Constructors, copy control */
+
+        /*Constructors*/
         public:
 
             //Default constructor
-            WordGraph()=default;
+            WordGraph();
 
         /* Methods */
 
@@ -436,7 +438,8 @@ namespace TextGun
         /*Constructors*/
         public:
 
-            WordModel()=default;
+            //Default constructor
+            WordModel();
 
         /* Methods */
 

@@ -143,6 +143,15 @@ namespace TextGun
         FrecLink
     */
 
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Default constructors
+    FrecLink::FrecLink()
+    :words(),dict(),f(0),n(0)
+    {}
+
     /* Methods */
 
     /*Add/delete*/
@@ -373,6 +382,15 @@ namespace TextGun
         WordGraph
     */
 
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Default constructor
+    WordGraph::WordGraph()
+    :nodes(),n(0)
+    {}
+
     /* Methods */
 
     /*Nodes*/
@@ -526,6 +544,15 @@ namespace TextGun
     /*
         WordModel
     */
+
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Default constructor
+    WordModel::WordModel()
+    :graph()
+    {}
 
     /* Methods */
 
