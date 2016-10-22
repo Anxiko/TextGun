@@ -48,106 +48,138 @@ int main()
     //Model
     TextGun::WordModel model;//TextGun model
 
-	while(in)
-	{
-		switch(menu())
-		{
-		    //Learn a line from standard input
-		    case Options::LISTEN:
-		    {
-		        //Read the line
-		        std::cout<<"Input line to learn: ";
-		        std::string s=read_line();
+    while(in)
+    {
+            switch(menu())
+            {
+                //Learn a line from standard input
+                case Options::LISTEN:
+                {
+                    //Read the line
+                    std::cout<<"Input line to learn: ";
+                    std::string s=read_line();
 
-		        //Feed the line to the model
-		        std::stringstream ss(s);
-		        TextGun::TextStream ts(ss);
-		        model.learn(ts);
+                    //Feed the line to the model
+                    std::stringstream ss(s);
+                    TextGun::TextStream ts(ss);
+                    model.learn(ts);
 
-		        //Adjust the flags
-		        unsaved_changes=true;
-		        empty_model=false;
+                    //Adjust the flags
+                    unsaved_changes=true;
+                    empty_model=false;
 
-		        break;
-		    }
+                    break;
+                }
+                
+                //Generate and write lines
+                case Options::THINK:
+                {
+                    //Print lines until users requests to stop
+                    do
+                    {
+                        std::cout<<model.think()<<'\n';
+                    }while(!questYN("Quit?",false));
+                    break;
+                }
+                
+                //Read a pregenerated model from a binary file
+                case Options::READ:
+                {
+                    if (!empty_model)
+                        std::cout<<"ERROR! Cannot read from file because model isn't empty. Reopen the program, and read the file\n";	
+                    else
+                    {
 
-		    case Options::THINK:
-		    {
-		        //Print lines until users requests to stop
-		        do
-		        {
-		            std::cout<<model.think()<<'\n';
-		        }while(!questYN("Quit?",false));
-		        break;
-		    }
+                        //Path of file to read
+                        std::cout<<"File to read: ";
+                        std::string file=read_filename();
 
-		    case Options::READ:
-		    {
-		        if (!empty_model)
-		            std::cout<<"ERROR! Cannot read from file because model isn't empty. Reopen the program, and read the file\n";
-				
-				else
-				{
+                        //Try to open the file
+                        std::ifstream input(file,std::ios::in|std::ios::binary);
+                        if(input.is_open())//If the file is open, save
+                        {
+                            model.read(input);
+                            empty_model=false;
+                        }
+                        else
+                            std::cout<<"ERROR: reading from file "<<file<<'\n';
+                    }
 
-				    //Path of file to read
-				    std::cout<<"File to read: ";
-				    std::string file=read_filename();
+                    break;
+                }
+                
+                //Write the current model to file
+                case Options::WRITE:
+                {
+                    //Path of file to write
+                    std::cout<<"File to write: ";
+                    std::string file=read_filename();
 
-				    //Try to open the file
-				    std::ifstream input(file,std::ios::in|std::ios::binary);
-				    if(input.is_open())//If the file is open, save
-				    {
-				    	model.read(input);
-				    	unsaved_changes=true;
-				    	empty_model=false;
-				    }
-				    else
-				        std::cout<<"ERROR: reading from file "<<file<<'\n';
-				}
+                    //Try to open the file
+                    std::ofstream output(file,std::ios::out|std::ios::binary|std::ios::trunc);
+                    if(output.is_open())//If the file is open, write
+                    {
+                        if (unsaved_changes)//If there are unsaved changes, go ahead
+                        {
+                            model.write(output);
+                            unsaved_changes=false;
+                        }
+                        else//If there are no changes, no need to save
+                            std::cout<<"No need to save anything!\n";
+                    }
+                    else
+                        std::cout<<"ERROR: saving to file "<<file<<'\n';
 
-		        break;
-		    }
+                    break;
+                }
 
-		    case Options::WRITE:
-		    {
-		        //Path of file to write
-		        std::cout<<"File to write: ";
-		        std::string file=read_filename();
+                case Options::LEARN:
+                {
+                    //Path of file to open
+                    std::cout<<"File to learn from: ";
+                    std::string file=read_filename();
 
-		        //Try to open the file
-		        std::ofstream output(file,std::ios::out|std::ios::binary|std::ios::trunc);
-		        if(output.is_open())//If the file is open, write
-		        {
-		            if (unsaved_changes)//If there are unsaved changes, go ahead
-		            {
-		            	model.write(output);
-		            	unsaved_changes=false;
-		            }
-		            else//If there are no changes, no need to save
-		                std::cout<<"No need to save anything!\n";
-		        }
-		        else
-		            std::cout<<"ERROR: saving to file "<<file<<'\n';
+                    //Try to open the file
+                    std::ifstream input(file);
+                    if(input.is_open())//If the file is open, read it
+                    {
+                        //Read the file, line by line
+                        for(std::string s;std::getline(input,s);)
+                        {
+                            if (!s.empty())//Don't read blank lines
+                            {
+                                std::stringstream ss(s);
+                                TextGun::TextStream ts(ss);
+                                model.learn(ts);
 
-		        break;
-		    }
+                                //Modify flags
+                                unsaved_changes=true;
+                                empty_model=false;
+                            }
+                        }
+                    }
+                    else
+                        std::cout<<"ERROR! Reading from file "<<file<<'\n';
 
-		    //Exit the program
-		    case Options::EXIT:
-		    {
-		        if(questYN("Close the program?",false))
-		            in=false;
+                    break;
+                }
 
-		        break;
-		    }
+                //Exit the program
+                case Options::EXIT:
+                {
+                    if(questYN("Close the program?",false))
+                        in=false;
 
-		    case Options::ERROR:
-		    default:
-		    {
-		        std::cout<<"ERROR!\n";
-		        break;
-		    }
-		}
+                    break;
+                }
+
+                case Options::ERROR:
+                default:
+                {
+                    std::cout<<"ERROR!\n";
+                    break;
+                }
+            }
 	}
 	
 	return 0;
