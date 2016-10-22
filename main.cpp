@@ -70,7 +70,7 @@ int main()
 
                     break;
                 }
-                
+
                 //Generate and write lines
                 case Options::THINK:
                 {
@@ -81,12 +81,12 @@ int main()
                     }while(!questYN("Quit?",false));
                     break;
                 }
-                
+
                 //Read a pregenerated model from a binary file
                 case Options::READ:
                 {
                     if (!empty_model)
-                        std::cout<<"ERROR! Cannot read from file because model isn't empty. Reopen the program, and read the file\n";	
+                        std::cout<<"ERROR! Cannot read from file because model isn't empty. Reopen the program, and read the file\n";
                     else
                     {
 
@@ -107,7 +107,7 @@ int main()
 
                     break;
                 }
-                
+
                 //Write the current model to file
                 case Options::WRITE:
                 {
@@ -181,7 +181,7 @@ int main()
                 }
             }
 	}
-	
+
 	return 0;
 }
 
@@ -203,14 +203,9 @@ Options menu()
     int x;
 
     //Parse the string to int, errors may occur
-    try
-    {
-        x=std::stoi(opt);
-    }
-    catch(std::exception &e)
-    {
+    std::stringstream ss(opt);
+    if(!(ss>>x))
         x=Options::ERROR;
-    }
 
     if (x<=Options::START||x>=Options::END)
         x=Options::ERROR;
@@ -243,7 +238,7 @@ std::string read_filename()
 {
     std::string s;
     std::getline(std::cin,s);
-    
+
     return std::move(s);
 }
 
@@ -252,6 +247,6 @@ std::string read_line()
 {
     std::string s;
     std::getline(std::cin,s);
-    
+
     return std::move(s);
 }
