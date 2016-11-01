@@ -1,7 +1,7 @@
 /*
  * TextGun.hpp
  *
- * Copyright 2016 Joaquín Monteagudo Gómez <kindos7@gmail.com>
+ * Copyright 2016 JoaquÃ­n Monteagudo GÃ³mez <kindos7@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 #include <list>//Linked lists
 #include <utility>//Pairs
 #include <map>//Maps
+#include <set>//Sets
 #include <string>//Strings
 #include <istream>//Input stream
 #include <sstream>//String stream
@@ -48,6 +49,7 @@
 #include <chrono>
 #include <ostream>//Writing to file
 #include <istream>//Reading from file
+#include <cctype>//Char functions
 
 /* Defines */
 
@@ -71,7 +73,9 @@ namespace TextGun
 
     class WordGraph;//Contains the WordNodes, indexed by their Word
 
-    class TextStream;//Provides the Words from a input stream
+    class ITextStream;//Provides the Words from a input stream
+
+    class OTextStream;//Outputs words to a output stream
 
     class WordModel;//Model capable of learning and speaking
 
@@ -92,12 +96,34 @@ namespace TextGun
     {
         START=0,//Start of text
         WORD,//Text word
+        SYMBOL,//Symbol word (could not be parsed)
+        L_DELIM,//Text separator that appears at the start of a word, such as an opener parenthesis ('(')
+        R_DELIM,//Text separator that appears at the end of a word, such as an closer parenthesis (')')
+        L_STOP,//Text stop that appears at the start of a word, such as a exclamation mark opener (Â¡)
+        R_STOP,//Text stop that appears at the end of a word, such as a dot (!)
+        INT,//Integer number (27)
+        DECIMAL,//Decimal number (27.5)
         END//End of text
     };
 
     //Stores a word, indicates if it's special
     class Word
     {
+        /*Config*/
+
+        /*Special words*/
+        private:
+
+            //Special characters
+            static const std::map<char,WordType> SPEC_CHAR;
+
+            //Numeric separators
+            static const std::set<char> NUM_SEP;
+
+            //Text word separators
+            static const std::set<char> TXT_SEP;
+
+
         /* Attributes */
 
         /*Word*/
@@ -367,7 +393,7 @@ namespace TextGun
     };
 
     //Provides the Words from a input stream
-    class TextStream
+    class ITextStream
     {
         /* Config */
 
@@ -408,7 +434,7 @@ namespace TextGun
         public:
 
             //Complete constructor
-            TextStream(std::istream &nis);
+            ITextStream(std::istream &nis);
 
         /* Methods */
 
@@ -421,6 +447,57 @@ namespace TextGun
             //Return the last word read from the stream
             Word read();
 
+    };
+
+    //Outputs words to a output stream
+    class OTextStream
+    {
+        /* Config */
+
+        /*Types*/
+        private:
+
+            enum class StreamState
+            {
+                START=0,//Start of the stream
+                WORD,//Last output was a word
+                DELIM,//Last output was a delimiter (like a coma ,)
+                STOP,//Last output was a full stop (like a dot .)
+                END//End of the stream
+            };
+
+        /* Attributes */
+
+        /*Stream*/
+        private:
+
+            //Output stream
+            std::ostream &os;
+
+            //Status of the stream
+            StreamState state;
+
+        /* Constructors, copy control */
+
+        /*Constructors*/
+        public:
+
+            //Complete constructor
+            OTextStream(std::ostream &nos);
+
+        /* Methods */
+
+        /*Write*/
+        public:
+
+            //Write a word to the stream
+            void write(const Word &w);
+
+        /*Word*/
+        public:
+
+            //Get the type of a word
+            static StreamState word_type(const Word &w);
     };
 
     //Model capable of learning and speaking
@@ -447,7 +524,7 @@ namespace TextGun
         public:
 
             //Learn from a text stream
-            void learn(TextStream &ts);
+            void learn(ITextStream &ts);
 
         /*Speak*/
         public:

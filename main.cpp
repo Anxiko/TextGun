@@ -61,7 +61,7 @@ int main()
 
                     //Feed the line to the model
                     std::stringstream ss(s);
-                    TextGun::TextStream ts(ss);
+                    TextGun::ITextStream ts(ss);
                     model.learn(ts);
 
                     //Adjust the flags
@@ -149,7 +149,7 @@ int main()
                             if (!s.empty())//Don't read blank lines
                             {
                                 std::stringstream ss(s);
-                                TextGun::TextStream ts(ss);
+                                TextGun::ITextStream ts(ss);
                                 model.learn(ts);
 
                                 //Modify flags

@@ -42,6 +42,31 @@ namespace TextGun
         Init
     */
 
+    /* Word */
+
+    /*Config*/
+
+    //Special characters
+    const std::map<char,WordType> Word::SPEC_CHAR
+    {
+        {',',WordType::R_DELIM},{';',WordType::R_DELIM},{':',WordType::R_DELIM},{')',WordType::R_DELIM},//Right delimiters
+        {'(',WordType::L_DELIM},//Left delimiters
+        {'.',WordType::R_STOP},{'!',WordType::R_STOP},{'?',WordType::R_STOP},//Right delimiters
+        {'¡',WordType::L_STOP},{'¿',WordType::L_STOP}//Left delimiters
+    };
+
+    //Numeric separators
+    const std::set<char> Word::NUM_SEP
+    {
+        '\'','.',','
+    };
+
+    //Text word separators
+    const std::set<char> Word::TXT_SEP
+    {
+        '\''
+    };
+
     /* FrecLink */
 
     std::default_random_engine FrecLink::re(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));//Random engine
@@ -474,7 +499,7 @@ namespace TextGun
     }
 
     /*
-        TextStream
+        ITextStream
     */
 
     /* Constructors, copy control */
@@ -482,7 +507,7 @@ namespace TextGun
     /*Constructors*/
 
     //Complete constructor
-    TextStream::TextStream(std::istream &nis)
+    ITextStream::ITextStream(std::istream &nis)
     :is(nis),status(StreamState::START),nw("")
     {}
 
@@ -491,7 +516,7 @@ namespace TextGun
     /*Stream*/
 
     //Loads the next words from the stream, returns if the stream is ready. Must be called after every read
-    bool TextStream::has_words()
+    bool ITextStream::has_words()
     {
         switch(status)
         {
@@ -536,9 +561,69 @@ namespace TextGun
     }
 
     //Return the last word read from the stream
-    Word TextStream::read()
+    Word ITextStream::read()
     {
         return nw;
+    }
+
+    /*
+        OTextStream
+    */
+
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Complete constructor
+    OTextStream::OTextStream(std::ostream &nos)
+    :os(nos),state(StreamState::START)
+    {}
+
+    /* Methods */
+
+    /*Write*/
+
+    //Write a word to the stream
+    void OTextStream::write(const Word &w)
+    {
+        //Output will depend based on previous word
+        switch(state)
+        {
+            case StreamState::START://Start of the stream
+            {
+                std::string s(w.get_text());//Text to output
+                switch(w.get_type())
+                {
+                    case WordType::WORD://For words, try to make the first word uppercase
+                    {
+                        if(!s.empty()&&std::islower(s[0]))//If it's not empty, and first letter is lowercase
+                            s[0]=std::toupper(s[0]);//Make the first letter uppercase
+                        //No break, let it flow
+                    }
+
+                    //Print everything that has text
+                    case WordType::SYMBOL:
+                    case WordType::L_DELIM:
+                    case WordType::R_DELIM:
+                    case WordType::L_STOP:
+                    case WordType::R_STOP:
+                    case WordType::INT:
+                    case WordType::DECIMAL:
+                    {
+                        os<<s;//Output the text
+                        //No break, let it flow
+                    }
+                }
+            }
+        }
+    }
+
+    /*Word*/
+
+    //Get the type of a word
+    OTextStream::StreamState OTextStream::word_type(const Word &w)
+    {
+        return StreamState::START;
     }
 
     /*
@@ -559,7 +644,7 @@ namespace TextGun
     /*Learn*/
 
     //Learn from a text stream
-    void WordModel::learn(TextStream &ts)
+    void WordModel::learn(ITextStream &ts)
     {
         //Load the first word
         if (ts.has_words())
