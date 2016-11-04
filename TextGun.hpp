@@ -452,19 +452,6 @@ namespace TextGun
     //Outputs words to a output stream
     class OTextStream
     {
-        /* Config */
-
-        /*Types*/
-        private:
-
-            enum class StreamState
-            {
-                START=0,//Start of the stream
-                WORD,//Last output was a word
-                DELIM,//Last output was a delimiter (like a coma ,)
-                STOP,//Last output was a full stop (like a dot .)
-                END//End of the stream
-            };
 
         /* Attributes */
 
@@ -474,8 +461,8 @@ namespace TextGun
             //Output stream
             std::ostream &os;
 
-            //Status of the stream
-            StreamState state;
+            //Status of the stream, previously printed word
+            WordType state;
 
         /* Constructors, copy control */
 
@@ -491,7 +478,7 @@ namespace TextGun
         public:
 
             //Write a word to the stream
-            void write(const Word &w);
+            bool write(const Word &w);
 
         /*Word*/
         public:

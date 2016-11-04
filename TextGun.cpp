@@ -586,35 +586,76 @@ namespace TextGun
     //Write a word to the stream
     void OTextStream::write(const Word &w)
     {
-        //Output will depend based on previous word
-        switch(state)
+        //Check stream's state
+        if (state==WordType::END)//If the stream's closed
         {
-            case StreamState::START://Start of the stream
+            if (!(w.get_type()==WordType::END || w.get_type()==WordType::START))//If we aren't closing, or reopening the stream
+                return false;//Error!
+        }
+
+        std::string s(w.get_text());//Text to be written, if any
+
+        //Format will depend on the word to be written
+        switch(w.get_type())//Switch based on word type
+        {
+            //Start of text
+            case WordType::START
             {
-                std::string s(w.get_text());//Text to output
-                switch(w.get_type())
+                if (state==WordType::START)//If the stream is also at the start
+                    ;//No need to do a thing
+                else if (state==WordType::END)//If the stream is being reopened
+                    os<<'\n';//Print a newline
+                else//Printing a start without the stream being closed/at the start, error
+                    return false;
+
+                break;
+            }
+
+            //Content
+            case WordType::WORD:
+            case WordType::SYMBOL:
+            case WordType::INT:
+            case WordType::DECIMAL:
+            {
+                switch(state)//Print based on previous word
                 {
-                    case WordType::WORD://For words, try to make the first word uppercase
+                    //Upper+Space
+                    case WordType::R_STOP:
                     {
-                        if(!s.empty()&&std::islower(s[0]))//If it's not empty, and first letter is lowercase
-                            s[0]=std::toupper(s[0]);//Make the first letter uppercase
-                        //No break, let it flow
+                        os<<' ';
+                        if (!s.empty()&&std::islower(s[0]))
+                            s[0]=std::toupper(s[0]);
+                        break;
                     }
 
-                    //Print everything that has text
+                    //Upper
+                    case WordType::START:
+                    case WordType:L_STOP:
+                    {
+                        if (!s.empty()&&std::islower(s[0]))
+                            s[0]=std::toupper(s[0]);
+                        break;
+                    }
+
+                    //Space
+                    case WordType::WORD:
                     case WordType::SYMBOL:
-                    case WordType::L_DELIM:
-                    case WordType::R_DELIM:
-                    case WordType::L_STOP:
-                    case WordType::R_STOP:
                     case WordType::INT:
                     case WordType::DECIMAL:
                     {
-                        os<<s;//Output the text
-                        //No break, let it flow
+                        os<<' ';
+                        break;
                     }
+
+                    //Nothing (or unknown status)
+                    case WordType::L_DELIM:
+                    default:
+                        break;
                 }
+
+                break;
             }
+
         }
     }
 
