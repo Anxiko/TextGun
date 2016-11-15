@@ -479,12 +479,6 @@ namespace TextGun
 
             //Write a word to the stream
             bool write(const Word &w);
-
-        /*Word*/
-        public:
-
-            //Get the type of a word
-            static StreamState word_type(const Word &w);
     };
 
     //Model capable of learning and speaking

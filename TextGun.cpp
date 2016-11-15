@@ -576,7 +576,7 @@ namespace TextGun
 
     //Complete constructor
     OTextStream::OTextStream(std::ostream &nos)
-    :os(nos),state(StreamState::START)
+    :os(nos),state(WordType::START)
     {}
 
     /* Methods */
@@ -584,7 +584,7 @@ namespace TextGun
     /*Write*/
 
     //Write a word to the stream
-    void OTextStream::write(const Word &w)
+    bool OTextStream::write(const Word &w)
     {
         //Check stream's state
         if (state==WordType::END)//If the stream's closed
@@ -599,7 +599,7 @@ namespace TextGun
         switch(w.get_type())//Switch based on word type
         {
             //Start of text
-            case WordType::START
+            case WordType::START:
             {
                 if (state==WordType::START)//If the stream is also at the start
                     ;//No need to do a thing
@@ -630,7 +630,7 @@ namespace TextGun
 
                     //Upper
                     case WordType::START:
-                    case WordType:L_STOP:
+                    case WordType::L_STOP:
                     {
                         if (!s.empty()&&std::islower(s[0]))
                             s[0]=std::toupper(s[0]);
@@ -653,18 +653,68 @@ namespace TextGun
                         break;
                 }
 
+                //Now that the word is ready, print it
+                os<<s;
+
                 break;
             }
 
+            //Left delimiter
+            case WordType::L_DELIM:
+            case WordType::L_STOP:
+            {
+                switch (state)//Print based on previous word
+                {
+                    //Space
+
+                    //After content
+                    case WordType::WORD:
+                    case WordType::SYMBOL:
+                    case WordType::INT:
+                    case WordType::DECIMAL:
+                    //After right delimiter
+                    case WordType::R_DELIM:
+                    case WordType::R_STOP:
+                    {
+                        os<<' ';
+                        break;
+                    }
+
+                    //Nothing
+
+                    //Other left delimiters
+                    case WordType::L_DELIM:
+                    case WordType::L_STOP:
+                    //Unknown
+                    default:
+                        break;
+                }
+
+                //Now that the word is ready, print it
+                os<<s;
+
+                break;
+            }
+
+            //Right delimiter
+            case WordType::R_DELIM:
+            case WordType::R_STOP:
+            {
+                //No formatting needed, just print it
+                os<<s;
+                break;
+            }
+
+            //By default
+            default:
+            {
+                os<<s;//Just print the word
+                break;
+            }
         }
-    }
 
-    /*Word*/
-
-    //Get the type of a word
-    OTextStream::StreamState OTextStream::word_type(const Word &w)
-    {
-        return StreamState::START;
+        //No error, return true
+        return true;
     }
 
     /*
