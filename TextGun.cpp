@@ -67,9 +67,20 @@ namespace TextGun
         '\''
     };
 
+    //Words to not be altered
+    const std::set<std::string> Word::TXT_LIT
+    {
+        std::string("I")
+    };
+
     /* FrecLink */
 
     std::default_random_engine FrecLink::re(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));//Random engine
+
+    /* ITextStream */
+
+    //Word to be returned if an error arises during reading
+    const Word ITextStream::DEF_ERR_WORD(WordType::END);
 
     /*
             Functions
@@ -508,7 +519,7 @@ namespace TextGun
 
     //Complete constructor
     ITextStream::ITextStream(std::istream &nis)
-    :is(nis),status(StreamState::START),nw("")
+    :is(nis),status(StreamState::START),nw()
     {}
 
     /* Methods */
@@ -523,7 +534,7 @@ namespace TextGun
             //Load the start word, switch to text
             case StreamState::START:
             {
-                nw=Word(WordType::START);
+                nw.push_back(Word(WordType::START));
                 status=StreamState::TEXT;
                 return true;
             }
@@ -531,12 +542,13 @@ namespace TextGun
             //Load a text word, if it fails, switch to the end
             case StreamState::TEXT:
             {
-                std::string s;//String to be read
-                if (is.good())//Try to read
+                std::string s;//String to read
+                if (!nw.empty())//If the buffer isn't empty
+                    return true;//It has words
+                else if (is>>s)//Or it can be filled again
                 {
-                    is >> s;
-                    nw=Word(s);
-                    return true;
+                    read_word(s);//Fill it again
+                    return true;//It still has words
                 }
                 else
                 {
@@ -548,7 +560,7 @@ namespace TextGun
             //End of text, stream is now empty
             case StreamState::END:
             {
-                nw=Word(WordType::END);
+                nw.push_back(Word(WordType::END));
                 status=StreamState::EMPTY;
                 return true;
             }
@@ -563,8 +575,87 @@ namespace TextGun
     //Return the last word read from the stream
     Word ITextStream::read()
     {
-        return nw;
+        if (nw.empty())//If it's empty, error
+            return DEF_ERR_WORD;
+        else//Return the front, and pop it
+        {
+            auto rv=nw.front();
+            nw.pop_front();
+            return rv;
+        }
     }
+
+    /*Parsing*/
+
+    //Fill the queue with words from a text separated by whitespàce
+    bool ITextStream::read_word(std::string s)
+    {
+        Word rv("");//Values returned from the functions
+
+        std::list<Word> words;//All words extracted from the string
+        auto it=s.cbegin();//Iterator, start at begin
+        auto e=s.cend();//End
+
+        //Try to read all L_STOP. May be none
+        while(read_L_STOP(it,e,rv))
+            words.push_back(rv);
+
+        //Try to read all L_DELIM. May be none
+        while(read_L_STOP(it,e,rv))
+            words.push_back(rv);
+
+        //Try to read a content word. If this fails, the whole string is turned into a symbol
+        if (read_CONTENT(it,e,rv))
+        {
+            //Correct word
+            words.push_back(rv);
+        }
+        else
+        {
+            //Symbol
+            nw.push_back(Word(s,WordType::SYMBOL));
+            return false;//Indicate that it's a symbol
+        }
+
+        //Try to read all R_DELIM. May be none
+        while(read_R_DELIM(it,e,rv))
+            words.push_back(rv);
+
+        //Try to read all R_STOP. May be none
+        while(read_R_STOP(it,e,rv))
+            words.push_back(rv);
+
+        //All string must be consumed by now. Otherwise, the whole string's a symbol
+        if (it==e)
+        {
+            //String consumed
+
+            //Move all words from this list to the end of the stream's list
+            nw.splice(nw.end(),words);
+            return true;//Reading succesful
+        }
+        else
+        {
+            //All reading is done, but there's still string left
+
+            nw.push_back(Word(s,WordType::SYMBOL));
+            return false;//Indicate that it's a symbol
+
+        }
+    }
+
+
+    //Read whitespace
+    bool read_WS(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+    //Read a left stop
+    bool read_L_STOP(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+    //Read a left delimiter
+    bool read_L_DELIM(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+    //Read content
+    bool read_CONTENT(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
 
     /*
         OTextStream

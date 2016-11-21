@@ -123,6 +123,9 @@ namespace TextGun
             //Text word separators
             static const std::set<char> TXT_SEP;
 
+            //Words to not be altered
+            static const std::set<std::string> TXT_LIT;
+
 
         /* Attributes */
 
@@ -135,12 +138,10 @@ namespace TextGun
         /* Constructors, copy control */
 
         /*Constructors*/
-        private:
+        public:
 
             //Complete constructor
             Word(const std::string &ns,WordType nt);
-
-        public:
 
             //Word constructor
             Word(const std::string &ns);
@@ -426,7 +427,7 @@ namespace TextGun
             StreamState status;
 
             //Next word to be fed
-            Word nw;
+            std::list<Word> nw;
 
         /* Constructors, copy control */
 
@@ -447,6 +448,31 @@ namespace TextGun
             //Return the last word read from the stream
             Word read();
 
+        /*Parsing*/
+        private:
+
+            /*Read a word, or a part of it. Return true if you read what expected, false otherwise. Return the readen word*/
+
+            //Fill the queue with words from a text separated by whitespàce
+            bool read_word(std::string s);
+
+            //Read whitespace
+            bool read_WS(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+            //Read a left stop
+            bool read_L_STOP(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+            //Read a left delimiter
+            bool read_L_DELIM(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+            //Read content
+            bool read_CONTENT(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+            //Read a right delimiter
+            bool read_R_DELIM(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+
+            //Read a right stop
+            bool read_R_STOP(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
     };
 
     //Outputs words to a output stream
