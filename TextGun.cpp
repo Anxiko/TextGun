@@ -605,17 +605,21 @@ namespace TextGun
             words.push_back(rv);
 
         //Try to read a content word. If this fails, the whole string is turned into a symbol
-        if (read_CONTENT(it,e,rv))
+        if (read_CONTENT(it,e,rv))//Text was found, check that it wasn't a symbol
         {
-            //Correct word
-            words.push_back(rv);
+            if (rv.get_type()!=WordType::SYMBOL)
+            {
+                //Correct word
+                words.push_back(rv);
+            }
+            else
+            {
+                //Symbol
+                nw.push_back(Word(s,WordType::SYMBOL));
+                return false;//Indicate that it's a symbol
+            }
         }
-        else
-        {
-            //Symbol
-            nw.push_back(Word(s,WordType::SYMBOL));
-            return false;//Indicate that it's a symbol
-        }
+        //If no text was found, go on without problems
 
         //Try to read all R_DELIM. May be none
         while(read_R_DELIM(it,e,rv))
@@ -637,7 +641,6 @@ namespace TextGun
         else
         {
             //All reading is done, but there's still string left
-
             nw.push_back(Word(s,WordType::SYMBOL));
             return false;//Indicate that it's a symbol
 
@@ -645,17 +648,181 @@ namespace TextGun
     }
 
 
-    //Read whitespace
-    bool read_WS(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+    //Read whitespace (omit, do not return)
+    bool ITextStream::read_WS(std::string::const_iterator &it,std::string::const_iterator e,Word &)
+    {
+        bool rv=false;//True if any ws was read
+
+        while (it!=e)//Until the end is reached
+        {
+            if (*it==' '||*it=='\t')//Space or tab
+            {
+                rv=true;//At least one is read
+                ++it;//Go on
+            }
+            else
+                break;//If it wasn't ws, stop reading
+        }
+
+        return rv;
+    }
 
     //Read a left stop
-    bool read_L_STOP(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+    bool ITextStream::read_L_STOP(std::string::const_iterator &it,std::string::const_iterator e,Word &w)
+    {
+        if (it!=e)//If not at the end
+        {
+            auto item=Word::SPEC_CHAR.find(*it);//look for the next chararcter
+            if (item!=Word::SPEC_CHAR.end() && item->second == WordType::L_STOP)//If the character was found, and it was a L_STOP
+            {
+                w.set_all(std::string(1,*it),WordType::L_STOP);//Set the word
+                ++it;//Advance the iterator
+                return true;//Read a word
+            }
+        }
+
+        return false;//Did not read a word
+    }
 
     //Read a left delimiter
-    bool read_L_DELIM(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+    bool ITextStream::read_L_DELIM(std::string::const_iterator &it,std::string::const_iterator e,Word &w)
+    {
+        if (it!=e)//If not at the end
+        {
+            auto item=Word::SPEC_CHAR.find(*it);//look for the next chararcter
+            if (item!=Word::SPEC_CHAR.end() && item->second == WordType::L_DELIM)//If the character was found, and it was a L_DELIM
+            {
+                w.set_all(std::string(1,*it),WordType::L_DELIM);//Set the word
+                ++it;//Advance the iterator
+                return true;//Read a word
+            }
+        }
+        return false;//Did not read a word
+    }
 
     //Read content
-    bool read_CONTENT(std::string::const_iterator &it,std::string::const_iterator e,Word &w);
+    bool ITextStream::read_CONTENT(std::string::const_iterator &it,std::string::const_iterator e,Word &w)
+    {
+        if (it==e)//No text left
+            return false;
+
+        std::string word;//Word that was read
+        Word rv("");//Return value of aux function
+        WordType t=WordType::START;//Type of the word reading
+        bool trans=false;//Transitioning
+        for (;it!=e;++it)
+        {
+            //Check if the word has ended
+            if (read_R_DELIM(it,e,rv)||read_R_STOP(it,e,rv))
+            {
+                //End reached
+                --it;//Return what you read
+                break;
+            }
+
+            //Read based on type
+            switch (t)
+            {
+                //Type not deducted yet
+                case WordType::START:
+                {
+                    if (std::isalpha(*it))//Letter
+                    {
+                        word+=*it;//Add the letter to the word
+                        t=WordType::WORD;
+                    }
+                    else if (std::isdigit(*it))//Number
+                    {
+                        word+=*it;//Add the digit to the word
+                        t=WordType::INT;
+                    }
+                    else//Symbol
+                    {
+                        word+=*it;
+                        t=WordType::SYMBOL;
+                    }
+                    break;
+                }
+
+                //Word
+                case WordType::WORD:
+                {
+                    if
+                    (
+                        std::isalpha(*it)//A letter
+                        ||//Or
+                        (Word::TXT_SEP.find(*it)!=Word::TXT_SEP.end())//A text separator
+                    )
+                        word+=*it;//Add the letter
+                    else//Error, switch to symbol
+                    {
+                        word+=*it;//Add the letter
+                        t=WordType::SYMBOL;
+                    }
+
+                    break;
+                }
+
+                //Integer
+                case WordType::INT:
+                {
+                    if (std::isdigit(*it))//Digit
+                    {
+                        word+=*it;
+                    }
+                    else if (Word::NUM_SEP.find(*it)!=Word::NUM_SEP.end())//Separator
+                    {
+                        //Switch to decimal
+                        trans=true;
+                        word+=*it;
+                        t=WordType::DECIMAL;
+                    }
+                    else//Error, switch to symbol
+                    {
+                        word+=*it;//Add the letter
+                        t=WordType::SYMBOL;
+                    }
+
+                    break;
+                }
+
+                //Decimal
+                case WordType::DECIMAL:
+                {
+                    if (std::isdigit(*it))//Digit
+                    {
+                        word+=*it;
+                        trans=false;
+                    }
+                    else//Error, switch to symbol
+                    {
+                        word+=*it;//Add the letter
+                        t=WordType::SYMBOL;
+                    }
+
+                    break;
+                }
+
+                default:
+                    break;
+            }
+        }
+
+        //End of reading
+        if (t==WordType::DECIMAL && trans)//Mid transitioning, turn to symbol
+            t=WordType::SYMBOL;
+        else if (t==WordType::WORD)
+        {
+            if (Word::TXT_LIT.find(word)==Word::TXT_LIT.end())//If the word is not literal, make it lowercase
+                for (char &c : word)
+                    c=std::tolower(c);
+            //If it's a literal, respect it
+        }
+
+        //Return the value
+        w.set_all(word,t);
+        return true;
+    }
 
     /*
         OTextStream
@@ -806,6 +973,40 @@ namespace TextGun
 
         //No error, return true
         return true;
+    }
+
+     //Read a left stop
+    bool ITextStream::read_R_DELIM(std::string::const_iterator &it,std::string::const_iterator e,Word &w)
+    {
+        if (it!=e)//If not at the end
+        {
+            auto item=Word::SPEC_CHAR.find(*it);//look for the next chararcter
+            if (item!=Word::SPEC_CHAR.end() && item->second == WordType::R_DELIM)//If the character was found, and it was a L_STOP
+            {
+                w.set_all(std::string(1,*it),WordType::R_DELIM);//Set the word
+                ++it;//Advance the iterator
+                return true;//Read a word
+            }
+        }
+
+        return false;//Did not read a word
+    }
+
+     //Read a left stop
+    bool ITextStream::read_R_STOP(std::string::const_iterator &it,std::string::const_iterator e,Word &w)
+    {
+        if (it!=e)//If not at the end
+        {
+            auto item=Word::SPEC_CHAR.find(*it);//look for the next chararcter
+            if (item!=Word::SPEC_CHAR.end() && item->second == WordType::R_STOP)//If the character was found, and it was a L_STOP
+            {
+                w.set_all(std::string(1,*it),WordType::R_STOP);//Set the word
+                ++it;//Advance the iterator
+                return true;//Read a word
+            }
+        }
+
+        return false;//Did not read a word
     }
 
     /*

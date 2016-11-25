@@ -112,7 +112,7 @@ namespace TextGun
         /*Config*/
 
         /*Special words*/
-        private:
+        public:
 
             //Special characters
             static const std::map<char,WordType> SPEC_CHAR;
@@ -184,7 +184,7 @@ namespace TextGun
             //Set
 
             //Set as a word
-            void set_text(std::string ns)
+            void set_text(const std::string &ns)
             {
                 s=ns;
                 t=WordType::WORD;
@@ -194,6 +194,13 @@ namespace TextGun
             void set_type(WordType nt)
             {
                 s="";
+                t=nt;
+            }
+
+            //Set type and text
+            void set_all(const std::string &ns, WordType nt)
+            {
+                s=ns;
                 t=nt;
             }
 
