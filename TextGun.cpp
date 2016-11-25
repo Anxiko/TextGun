@@ -175,6 +175,81 @@ namespace TextGun
         delete[] str;
     }
 
+    /*Printing*/
+
+    //Human readable printing
+    void Word::print(std::ostream &os)
+    {
+        switch (t)
+        {
+            case WordType::START:
+            {
+                os<<"{START}";
+                break;
+            }
+
+            case WordType::WORD:
+            {
+                os<<"{WORD: "<<s<<'}';
+                break;
+            }
+
+            case WordType::SYMBOL:
+            {
+                os<<"{SYMBOL: "<<s<<'}';
+                break;
+            }
+
+            case WordType::L_DELIM:
+            {
+                os<<"{L_DELIM: "<<s<<'}';
+                break;
+            }
+
+            case WordType::R_DELIM:
+            {
+                os<<"{R_DELIM: "<<s<<'}';
+                break;
+            }
+
+            case WordType::L_STOP:
+            {
+                os<<"{L_STOP: "<<s<<'}';
+                break;
+            }
+
+            case WordType::R_STOP:
+            {
+                os<<"{R_STOP: "<<s<<'}';
+                break;
+            }
+
+            case WordType::INT:
+            {
+                os<<"{INT: "<<s<<'}';
+                break;
+            }
+
+            case WordType::DECIMAL:
+            {
+                os<<"{DECIMAL: "<<s<<'}';
+                break;
+            }
+
+            case WordType::END:
+            {
+                os<<"{END}";
+                break;
+            }
+
+            default:
+            {
+                os<<"{ERROR}";
+                break;
+            }
+        }
+    }
+
     /*
         FrecLink
     */

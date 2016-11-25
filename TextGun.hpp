@@ -213,6 +213,12 @@ namespace TextGun
             //Read word to stream
             void read(std::istream &i);
 
+        /*Printing*/
+        public:
+
+            //Human readable printing
+            void print(std::ostream &os);
+
     };
 
     //List of links to nodes sorted based on their frecuency
