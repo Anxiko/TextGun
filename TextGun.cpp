@@ -676,7 +676,7 @@ namespace TextGun
             words.push_back(rv);
 
         //Try to read all L_DELIM. May be none
-        while(read_L_STOP(it,e,rv))
+        while(read_L_DELIM(it,e,rv))
             words.push_back(rv);
 
         //Try to read a content word. If this fails, the whole string is turned into a symbol
