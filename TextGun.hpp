@@ -91,7 +91,7 @@ namespace TextGun
     std::string read_utf8_character(std::string::const_iterator &it,std::string::const_iterator e);
 
     //Return a string to another (purely based on size)
-    void return_utf8_string(std::string s,std::string::const_iterator &it,std::string::const_iterator e);
+    bool return_utf8_string(std::string s,std::string::const_iterator &it,std::string::const_iterator e);
 
     /*
         Data types
@@ -125,13 +125,13 @@ namespace TextGun
         public:
 
             //Special characters
-            static const std::map<char,WordType> SPEC_CHAR;
+            static const std::map<std::string,WordType> SPEC_CHAR;
 
             //Numeric separators
-            static const std::set<char> NUM_SEP;
+            static const std::set<std::string> NUM_SEP;
 
             //Text word separators
-            static const std::set<char> TXT_SEP;
+            static const std::set<std::string> TXT_SEP;
 
             //Words to not be altered
             static const std::set<std::string> TXT_LIT;
