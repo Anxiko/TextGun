@@ -153,6 +153,18 @@ namespace TextGun
         }
     }
 
+    //Return a string to another (purely based on size). Check that it does not go past the begin. Return true if everything went correctly, false otherwise
+    bool return_utf8_string(std::string s,std::string::const_iterator &it,std::string::const_iterator b)
+    {
+        if (std::distance(b,it)<s.size())//Can't return everything!
+            return false;//Report the error
+        else
+        {
+            std::advance(it,-s.size())//Return the thing string
+            return true;//Everything went correctly
+        }
+    }
+
     /*
         Word
     */

@@ -90,6 +90,9 @@ namespace TextGun
     //Read a character from a string iterator, and return it in a string. Return the empty string for any errors
     std::string read_utf8_character(std::string::const_iterator &it,std::string::const_iterator e);
 
+    //Return a string to another (purely based on size)
+    void return_utf8_string(std::string s,std::string::const_iterator &it,std::string::const_iterator e);
+
     /*
         Data types
      */
