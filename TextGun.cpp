@@ -86,6 +86,73 @@ namespace TextGun
             Functions
     */
 
+    /* UTF-8 parsing */
+
+    /*Reading*/
+
+    //Read a character from a string iterator, and return it in a string. Return the empty string for any errors
+    std::string read_utf8_character(std::string::const_iterator &it,std::string::const_iterator e)
+    {
+        if (it==e)//If at the end
+        {
+            return std::string();//Empty string
+        }
+        else//Read the first byte, decide the length of the character
+        {
+            //Make a copy of the iterator, to recover it in case of error
+            std::string::const_iterator cpy=it;
+
+            //There's at least one byte. If we read it, we'll know the length of the character to read
+            unsigned char first_byte=static_cast<unsigned char>(*it);//Read it as a byte! We're gonna do bitwise operations.
+
+            if (first_byte&0x80)//If the 8th byte is set to 1, the character is multibyte. We still have to figure out the length
+            {
+                /*
+                    The first byte indicates how many bytes is the character composed of.
+                    The 8th byte is 1. Then follow as many 1s as bytes has the character, then zero.
+                    110_____ = 2 bytes, one's alredy read
+                    1110____ = 3 bytes, one's alredy read
+                    11110___ = 4 bytes, one's alredy read
+
+                    All the following character must have the 10______ structure, so we'll check for that as well.
+                */
+
+                //First, determine the size
+                int n=0;//Bytes left to read
+                for (unsigned char bit_finder=0x40;bit_finder&first_byte;bit_finder=bit_finder>>1)//Iterate throught the bits, starting at the 7th until the 0 is found
+                    ++n;//One more bit read
+
+                //Now, to read the the bytes
+                std::string rv(1,*(it++));//String with the bytes. Create it with the first
+
+                for (;n>0 && it!=e;--n,++it)//Read all the bytes
+                {
+                    unsigned char byte=static_cast<unsigned char>(*it);//Read the byte
+
+                    if((byte&0xC0) != 0x80)//Check the byte is in the format 0x80, or 10______
+                        break;//ERROR! Byte is not in the expected format. Stop reading
+
+                    rv+=*it;//Add the byte to the string! It's in the correct format
+                }
+
+                //We're out of the loop. Check why
+                if (n)//Are there any bytes left to read? If so, an error happened
+                {
+                    it=cpy;//Restore the iterator
+                    return std::string();//Return the empty string
+                }
+                else//No bytes left, everything went correctly
+                {
+                    return rv;//Return the string with the bytes
+                }
+            }
+            else//Character is one byte
+            {
+                return std::string (1,*(it++));//String to return, has the first byte, which is the character
+            }
+        }
+    }
+
     /*
         Word
     */
