@@ -52,7 +52,7 @@ namespace TextGun
         {",",WordType::R_DELIM},{";",WordType::R_DELIM},{":",WordType::R_DELIM},{")",WordType::R_DELIM},//Right delimiters
         {"(",WordType::L_DELIM},//Left delimiters
         {".",WordType::R_STOP},{"!",WordType::R_STOP},{"?",WordType::R_STOP},//Right delimiters
-        {"¡",WordType::L_STOP},{"¿",WordType::L_STOP}//Left delimiters
+        {"\u00A1",WordType::L_STOP},{"\u00BF",WordType::L_STOP}//Left delimiters
     };
 
     //Numeric separators
