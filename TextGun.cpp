@@ -1134,7 +1134,7 @@ namespace TextGun
             {
                 switch (state)//Print based on previous word
                 {
-                    //Space
+                    //Nothing
 
                     //After content
                     case WordType::WORD:
@@ -1144,13 +1144,6 @@ namespace TextGun
                     //After right delimiter
                     case WordType::R_DELIM:
                     case WordType::R_STOP:
-                    {
-                        os<<' ';
-                        break;
-                    }
-
-                    //Nothing
-
                     //Other left delimiters
                     case WordType::L_DELIM:
                     case WordType::L_STOP:
@@ -1181,6 +1174,9 @@ namespace TextGun
                 break;
             }
         }
+
+        //Update the stream's status
+        state=w.get_type();
 
         //No error, return true
         return true;
