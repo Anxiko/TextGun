@@ -903,6 +903,28 @@ namespace TextGun
             {
                 switch(t)//Switch based on type
                 {
+                    case WordType::START:
+                    {
+                        //Try to detect the type of word
+
+                        if//Text word
+                        (
+                            (Word::TXT_SEP.find(c)!=Word::TXT_SEP.end())//Text separator
+                            ||
+                            (//Character is a letter
+                                (c.size()==1)
+                                &&
+                                (std::isalpha(c[0]))
+                            )
+                        )
+                            t=WordType::WORD;//Detect it as a word
+
+                        else if(c.size()==1&&std::isdigit(c[0]))//Integer
+                            t=WordType::INT;
+
+                        break;
+                    }
+
                     case WordType::WORD://Reading a word
                     {
                         if
@@ -965,7 +987,7 @@ namespace TextGun
             return false;//Report it
 
         //All set. Return the word
-        rv.set_all(word,t);
+        w.set_all(word,t);
         return true;
     }
 
