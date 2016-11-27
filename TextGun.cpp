@@ -1073,9 +1073,18 @@ namespace TextGun
                 if (state==WordType::START)//If the stream is also at the start
                     ;//No need to do a thing
                 else if (state==WordType::END)//If the stream is being reopened
-                    os<<'\n';//Print a newline
+                    ;//No need to do a thing
                 else//Printing a start without the stream being closed/at the start, error
                     return false;
+
+                break;
+            }
+
+            //End of text
+            case WordType::END:
+            {
+                //Stream ended, print newline
+                os<<'\n';
 
                 break;
             }
@@ -1111,6 +1120,7 @@ namespace TextGun
                     case WordType::SYMBOL:
                     case WordType::INT:
                     case WordType::DECIMAL:
+                    case WordType::R_DELIM:
                     {
                         os<<' ';
                         break;
@@ -1134,7 +1144,7 @@ namespace TextGun
             {
                 switch (state)//Print based on previous word
                 {
-                    //Nothing
+                    //Space
 
                     //After content
                     case WordType::WORD:
@@ -1144,6 +1154,13 @@ namespace TextGun
                     //After right delimiter
                     case WordType::R_DELIM:
                     case WordType::R_STOP:
+                    {
+                        os<<' ';
+                        break;
+                    }
+
+                    //Nothing
+
                     //Other left delimiters
                     case WordType::L_DELIM:
                     case WordType::L_STOP:
@@ -1232,10 +1249,8 @@ namespace TextGun
     /*Speak*/
 
     //Generate a line using the model
-    std::string WordModel::think()
+    void WordModel::think(OTextStream &ots)
     {
-        std::stringstream ss;//Stream to write the line built by the model
-
         //Make sure the start and end node exist
 
         if (!graph.check_word(Word(WordType::START)))
@@ -1251,14 +1266,11 @@ namespace TextGun
 
         while(node&&node->get_word()!=end_word)//Until the end node is reached
         {
-            ss<<node->get_word().get_text()<<' ';//Print this node
+            ots.write(node->get_word());//Print this node
 
             //Advance to next
             node=graph.get_node(node->get_next());
-
         }
-
-        return ss.str();
     }
 
     /*Read/write to file*/

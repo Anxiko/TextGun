@@ -560,7 +560,7 @@ namespace TextGun
         public:
 
             //Generate a line using the model
-            std::string think();
+            void think(OTextStream &ots);
 
         /*Read/write to file*/
         public:
