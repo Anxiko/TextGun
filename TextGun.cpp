@@ -1271,6 +1271,9 @@ namespace TextGun
             //Advance to next
             node=graph.get_node(node->get_next());
         }
+
+        //Close the stream
+        ots.write(end_word);
     }
 
     /*Read/write to file*/
