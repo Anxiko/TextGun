@@ -1370,10 +1370,14 @@ namespace TextGun
             ots.write(node->get_word());//Print this node
             path.push_front(node->get_word());//Add the word to the node
 
+            std::cout<<"On word ";
+            node->get_word().print(std::cout);
+            std::cout<<'\n';
+
             //Print possibilities for all next words
             for (const Word &w : node->get_list_next())
             {
-                std::cout<<"Possibility of ";
+                std::cout<<"\tPossibility of ";
                 w.print(std::cout);
                 std::cout<<" => "<<graph.pos_path(path.begin(),path.end(),{w})<<'\n';
             }
