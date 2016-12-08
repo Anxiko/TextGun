@@ -257,7 +257,7 @@ namespace TextGun
     /*Printing*/
 
     //Human readable printing
-    void Word::print(std::ostream &os)
+    void Word::print(std::ostream &os) const
     {
         switch (t)
         {
@@ -1363,10 +1363,20 @@ namespace TextGun
 
         const Word end_word(WordType::END);
 
+        std::list<Word> path;//Path being constructed
 
         while(node&&node->get_word()!=end_word)//Until the end node is reached
         {
             ots.write(node->get_word());//Print this node
+            path.push_front(node->get_word());//Add the word to the node
+
+            //Print possibilities for all next words
+            for (const Word &w : node->get_list_next())
+            {
+                std::cout<<"Possibility of ";
+                w.print(std::cout);
+                std::cout<<" => "<<graph.pos_path(path.begin(),path.end(),{w})<<'\n';
+            }
 
             //Advance to next
             node=graph.get_node(node->get_next());

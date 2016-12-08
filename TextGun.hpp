@@ -50,6 +50,7 @@
 #include <ostream>//Writing to file
 #include <istream>//Reading from file
 #include <cctype>//Char functions
+#include <iostream>//Output for testing
 
 /* Defines */
 
@@ -227,7 +228,7 @@ namespace TextGun
         public:
 
             //Human readable printing
-            void print(std::ostream &os);
+            void print(std::ostream &os) const;
 
     };
 
@@ -443,7 +444,7 @@ namespace TextGun
             void add_link(const Word &prev, const Word &next);
 
         /*Paths*/
-        private:
+        public:
 
             //Get the possibility that a path continues by a word in a set
             double pos_path(std::list<Word>::const_iterator it, std::list<Word>::const_iterator end, const std::list<Word> &words, double min_pos=MIN_POS_PATH) const;

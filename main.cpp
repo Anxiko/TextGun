@@ -75,10 +75,15 @@ int main()
                 case Options::THINK:
                 {
                     //Print lines until users requests to stop
-                    TextGun::OTextStream ots(std::cout);//Output stream
                     do
                     {
+                        //Store the output
+                        std::stringstream ss;//Stream to store the output
+                        TextGun::OTextStream ots(ss);//Output streams
+
                         model.think(ots);
+
+                        std::cout<<ss.str();//Print the output
                     }while(!questYN("Quit?",false));
                     break;
                 }
