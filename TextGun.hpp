@@ -46,7 +46,7 @@
 #include <istream>//Input stream
 #include <sstream>//String stream
 #include <random>//Random number generation
-#include <chrono>
+#include <chrono>//Seeding of random engines through current time
 #include <ostream>//Writing to file
 #include <istream>//Reading from file
 #include <cctype>//Char functions
@@ -577,6 +577,20 @@ namespace TextGun
     //Model capable of learning and speaking
     class WordModel
     {
+        /* Config */
+
+        /*Random*/
+        private:
+
+            //Random engine
+            static std::default_random_engine re;
+
+        /*Path*/
+        private:
+
+            //Maximum size of the path given for back tracking
+            static constexpr int MAX_BACK_PATH=5;
+
         /* Attributes */
 
         /*Nodes*/

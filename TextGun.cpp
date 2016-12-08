@@ -77,6 +77,10 @@ namespace TextGun
 
     std::default_random_engine FrecLink::re(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));//Random engine
 
+    /* WordModel */
+
+    std::default_random_engine WordModel::re(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));//Random engine
+
     /* ITextStream */
 
     //Word to be returned if an error arises during reading
@@ -1365,25 +1369,55 @@ namespace TextGun
 
         std::list<Word> path;//Path being constructed
 
+        int size_path=0;//Number of words in the path
+
+        auto end=path.end();//End of the path. If the path grows beyond its maximum size, move the iterator to limit how far back is the probability is calculated
+
         while(node&&node->get_word()!=end_word)//Until the end node is reached
         {
             ots.write(node->get_word());//Print this node
             path.push_front(node->get_word());//Add the word to the node
 
-            std::cout<<"On word ";
-            node->get_word().print(std::cout);
-            std::cout<<'\n';
+            if (++size_path>MAX_BACK_PATH)//Max size exceeded
+                std::advance(end,-1);//Reduce the path in 1, to keep it at the maximum
 
-            //Print possibilities for all next words
+            //List with all the possible next words
+            std::list< std::pair<double,Word> > lis_next;
+            double total_pos=0;
+
+            //Calculate possibilities for all next words
             for (const Word &w : node->get_list_next())
             {
-                std::cout<<"\tPossibility of ";
-                w.print(std::cout);
-                std::cout<<" => "<<graph.pos_path(path.begin(),path.end(),{w})<<'\n';
+                double pos=graph.pos_path(path.begin(),end,{w});
+
+                lis_next.emplace_back(pos,w);
+                total_pos+=pos;
+            }
+
+            //Get the next random word, based on its probability
+            node=nullptr;
+
+            //RNG
+            std::uniform_real_distribution<double> rng(0,total_pos);
+
+            //Get a random number
+            double rnd=rng(re);
+
+            //Iterate all over the candidates
+            for (const std::pair<double,Word> &p : lis_next)
+            {
+                //Update the composed probability
+                rnd-=p.first;
+
+                if (rnd<=0)//Check if this is the picked one
+                {
+                    node=graph.get_node(p.second);
+                    break;
+                }
             }
 
             //Advance to next
-            node=graph.get_node(node->get_next());
+            //node=graph.get_node(node->get_next());
         }
 
         //Close the stream
