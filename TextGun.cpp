@@ -339,7 +339,7 @@ namespace TextGun
 
     //Default constructors
     FrecLink::FrecLink()
-    :words(),dict(),f(0),n(0)
+    :words(),only_words(),dict(),f(0),n(0)
     {}
 
     /* Methods */
@@ -356,6 +356,8 @@ namespace TextGun
         {
             //Insert it at the end of the list with frec=1 (since it's the first time this word's been seen)
             words.emplace_back(1,w);
+            //Also inser the word alone
+            only_words.push_back(w);
             //Add the word to the dictionary
             dict[w]=std::prev(words.end());//Save the iterator to the last element of the list, where the word is now saved
 
@@ -426,6 +428,26 @@ namespace TextGun
 
         //If no word is found, an error just happened
         return Word(WordType::END);//Should throw an exception, by the time being the END world will be returned. Note that the word END is valid
+    }
+
+    //Read a frecuency
+    int FrecLink::get_frec(const Word &w) const
+    {
+        //Look for the word in the map
+        const auto& it=dict.find(w);
+
+        if (it==dict.end())//If not found, frecuency is 0
+            return 0;
+
+        const auto &list_it=it->second;//The value is an iterator to a list, get it
+
+        return list_it->first;//The list has pairs, the first element of which is the frecuency of the word
+    }
+
+    //Get the list of words
+    const std::list<Word>& FrecLink::get_words() const
+    {
+        return only_words;
     }
 
     /*Read/write to file*/
@@ -526,6 +548,34 @@ namespace TextGun
         return next.get_rand();
     }
 
+    //Get frecuency of a word
+
+    //Get frecuency of a next word
+    int WordNode::frec_next(const Word &w) const
+    {
+        return next.get_frec(w);
+    }
+
+    //Get frecuency of a previous word
+    int WordNode::frec_prev(const Word &w) const
+    {
+        return prev.get_frec(w);
+    }
+
+    //Get the list of words
+
+    //Get the list of previous words
+    const std::list<Word>& WordNode::get_list_prev() const
+    {
+        return prev.get_words();
+    }
+
+    //Get the list of next words
+    const std::list<Word>& WordNode::get_list_next() const
+    {
+        return next.get_words();
+    }
+
     /*Word*/
 
     //Increase frecuency
@@ -586,7 +636,7 @@ namespace TextGun
     /*Nodes*/
 
     //Check if a word exists (as a node in the graph)
-    bool WordGraph::check_word(const Word &w)
+    bool WordGraph::check_word(const Word &w) const
     {
         return nodes.find(w)!=nodes.end();
     }
@@ -616,6 +666,17 @@ namespace TextGun
         return nullptr;
     }
 
+    //Get a node by pointer, nullptr if not found (const version)
+    WordNode const * WordGraph::get_node(const Word &w) const
+    {
+        if(check_word(w))
+        {
+            const WordNode &node=nodes.at(w);
+            return &node;
+        }
+        return nullptr;
+    }
+
     /*Links*/
 
     //Add a link between two nodes
@@ -626,6 +687,45 @@ namespace TextGun
         //Add link prev -> next
         nodes.at(prev).add_next(next);
         nodes.at(next).add_prev(prev);
+    }
+
+    /*Paths*/
+
+    //Get the possibility that a path continues by a word in a set
+    double WordGraph::pos_path(std::list<Word>::const_iterator it, std::list<Word>::const_iterator end, const std::list<Word> &words, double min_pos) const
+    {
+        if (it==end)//If the path is empty, return max posibility (for recursive chaining)
+            return 1.0;
+
+        const Word& head=*it;//Head of the path
+
+        int total_frec=0;//Summ of  frecuency of all backwards links of all nodes in the set
+        double pos_frec=0;//Count of links that go backwards from a node in the set, to the first element in the path
+
+        for (const Word &word : words)//Iterate over all words in the set
+        {
+            WordNode const *ptr_node=get_node(word);//Get the node of the graph
+
+            //Only process words in the graph
+            if (ptr_node!=nullptr)
+            {
+                total_frec+=ptr_node->f;//Add the total frecuency of this node to the total
+                int f=ptr_node->frec_prev(head);//Get the frecuency of the head on the words previous to this node
+                if (f!=0)//There are some nodes going backwards
+                {
+                    //Possibility of continuing the path
+                    double composed_f=pos_path(std::next(it),end,ptr_node->get_list_prev(),min_pos);
+
+                    //Possibility has a minimum, the rest is the compose recursive possibility
+                    composed_f=composed_f*(1.0-min_pos)+min_pos;
+
+                    //Add to the frecuency, using the frecuency of the this node and the composed possibility
+                    pos_frec+=composed_f*static_cast<double>(f);
+                }
+            }
+        }
+
+        return pos_frec/total_frec;
     }
 
     /*Read/write to file*/

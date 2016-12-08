@@ -250,6 +250,9 @@ namespace TextGun
             //Lists of words and their frecuency
             std::list< std::pair< int,Word > > words;
 
+            //Lists of words
+            std::list<Word> only_words;
+
             //Dictionary that stores the position of each word on the list
             std::map< Word,std::list< std::pair< int,Word > >::iterator > dict;
 
@@ -285,6 +288,12 @@ namespace TextGun
 
             //Get a random word based on frecuency
             Word get_rand() const;
+
+            //Read a frecuency
+            int get_frec(const Word &w) const;
+
+            //Get the list of words
+            const std::list<Word>& get_words() const;
 
         /*Read/write to file*/
         public:
@@ -343,6 +352,22 @@ namespace TextGun
             //Get a random next word
             Word get_next() const;
 
+            //Get frecuency of a word
+
+            //Get frecuency of a next word
+            int frec_next(const Word &w) const;
+
+            //Get frecuency of a previous word
+            int frec_prev(const Word &w) const;
+
+            //Get the list of words
+
+            //Get the list of previous words
+            const std::list<Word>& get_list_prev() const;
+
+            //Get the list of next words
+            const std::list<Word>& get_list_next() const;
+
         /*Word*/
         public:
 
@@ -370,6 +395,14 @@ namespace TextGun
     //Contains the WordNodes, indexed by their Word
     class WordGraph
     {
+        /* Config */
+
+        /*Paths*/
+        private:
+
+            //Minimum posibility of a path landing in a set
+            static constexpr double MIN_POS_PATH=0.5;
+
         /* Attributes */
 
         /*Nodes*/
@@ -392,7 +425,7 @@ namespace TextGun
         public:
 
             //Check if a word exists (as a node in the graph)
-            bool check_word(const Word &w);
+            bool check_word(const Word &w) const;
 
             //Add a word to the node, increase its frecuency if it exists
             void add_word(const Word &w);
@@ -400,11 +433,21 @@ namespace TextGun
             //Get a node by pointer, nullptr if not found
             WordNode* get_node(const Word &w);
 
+            //Get a node by pointer, nullptr if not found (const version)
+            WordNode const * get_node(const Word &w) const;
+
         /*Links*/
         public:
 
             //Add a link between two nodes
             void add_link(const Word &prev, const Word &next);
+
+        /*Paths*/
+        private:
+
+            //Get the possibility that a path continues by a word in a set
+            double pos_path(std::list<Word>::const_iterator it, std::list<Word>::const_iterator end, const std::list<Word> &words, double min_pos=MIN_POS_PATH) const;
+
 
         /*Read/write to file*/
         public:
