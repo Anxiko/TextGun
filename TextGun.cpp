@@ -715,7 +715,7 @@ namespace TextGun
             {
                 total_frec+=ptr_node->f;//Add the total frecuency of this node to the total
                 int f=ptr_node->frec_prev(head);//Get the frecuency of the head on the words previous to this node
-                if (f!=0)//There are some nodes going backwards
+                if (f>(static_cast<float>(ptr_node->f)/ptr_node->get_list_prev().size()))//There are enough nodes going backwards (above average)
                 {
                     //Possibility of continuing the path
                     double composed_f=pos_path(std::next(it),end,ptr_node->get_list_prev(),min_pos);
