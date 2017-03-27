@@ -50,6 +50,7 @@
 #include <ostream>//Writing to file
 #include <istream>//Reading from file
 #include <cctype>//Char functions
+#include <cmath>//Hypotenuse and square root
 
 /* Defines */
 
@@ -98,6 +99,11 @@ namespace TextGun
      */
 
     /* Typedefs */
+
+    /*Frecuency*/
+
+    //Probability (0 to 1 frecuency)
+    typedef float prob_frec;
 
     /* Classes */
 
@@ -294,6 +300,17 @@ namespace TextGun
 
             //Read word to stream
             void read(std::istream &i);
+
+        /*Similarity*/
+        public:
+
+             //Get the similarity between two FrecLink
+            /*
+                A rating between 0 (completly different) and 1 (exactly equal) determines
+                how similar two frecuency dictionaries are, based on how many links they share
+            */
+            static prob_frec similarity_frec_link(const FrecLink &d1, const FrecLink &d2);
+
     };
 
     //Node for a word, frecuency and links on both directions

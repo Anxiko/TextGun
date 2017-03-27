@@ -481,6 +481,93 @@ namespace TextGun
         }
     }
 
+    /*Similarity*/
+
+    //Get the similarity between two FrecLink
+    prob_frec FrecLink::similarity_frec_link(const FrecLink &d1, const FrecLink &d2)
+    {
+        /*
+            The similarity rating (on the [0,1] set) is a weighted average
+            of the similarities of each individual link that belongs to either set (union of sets).
+
+            The value is the similarity between links (3 nodes, two nodes being compared, and a third one that is conncted to the other 2),
+            which is also on the [0,1] range.
+
+            The wieghts are the square root of the sum of the squared frecuencies,
+            (if it were a triangle, the hypotenuse would be the weight, and the frecuencies would be the other sides.
+
+             The similarity between two links uses the frecuencies between each of the two nodes to the thrird one (two frecuencies).
+             It is simply the harmonic mean divided by the arithmetic mean
+        */
+
+        /*
+            Since we only have to process each link once, we have to make sure we don't process duplicates.
+            We don't have to worry about that when we process the first dictionary, but we have to check that it's not in the first when we go through the second.
+            Because of that, we process the biggest dictionary first
+        */
+
+        //Set the first and last dictionary (bigger and smaller)
+        const FrecLink *ptr_d1, *ptr_d2;//Pointers to the dictionaries (bigger one is d1)
+
+        if (d1.n>d2.n)//d1 is the bigger one
+        {
+            ptr_d1=&d1;
+            ptr_d2=&d2;
+        }
+        else//d2 is the bigger one
+        {
+            ptr_d1=&d2;
+            ptr_d2=&d1;
+        }
+
+        //Iterate over the dictionaries
+
+        prob_frec ponderated_sum=0;//Ponderated sum of the similarities (dividend)
+        prob_frec weight_sum=0;//Sum of weights (divider)
+
+
+        //Iterate over the first dictionary
+        for  (const std::pair< int,Word > &word : ptr_d1->words)//Iterate over the links of the bigger dictionary, get a pair of the word and its frecuency
+        {
+            int f1=word.first;//The first frecuency can be extracted directly from the pair
+            int f2=0;//Second frecuency, not yet known (will remain at 0 if not found)
+
+            //Look for the link using the word on the other dictionary
+             std::map< Word,std::list< std::pair< int,Word > >::iterator >::const_iterator it = ptr_d2->dict.find(word.second);
+             if (it!=ptr_d2->dict.cend())//Link exists, get the frecuency
+                f2=it->second->first;//Get the frecuency from the iterator to the the list
+
+            //Might want to check that f1+f2!=0 here? Shouldn't happen, since it being on the bigger dictionary implies f1 is not zero
+
+            //Calculate the value and the weight
+            prob_frec weight=std::hypot(f1,f2);//=(f1*f1+f2*f2)^(1/2), hypotenuse calculus
+            prob_frec simil=(2*std::sqrt(f1*f2))/(static_cast<prob_frec>(f1+f2));//Similarity degree between links, between 0 and 1
+
+            //Add these values to the total
+            ponderated_sum+=weight*simil;//Add the ponderated similarity to the sum
+            weight_sum+=weight_sum;//Add the weight to the sum
+        }
+
+        //Iterate over the second dictionary
+        for  (const std::pair< int,Word > &word : ptr_d2->words)//Iterate over the links of the smaller dictionary, get a pair of the word and its frecuency
+        {
+            //Before anything, check if this link has already being processed (it is in the bigger dictionary)
+            std::map< Word,std::list< std::pair< int,Word > >::iterator >::const_iterator it = ptr_d1->dict.find(word.second);
+
+            if (it!=ptr_d1->dict.cend())//If it's in the other dictionary, skip it; it's already been processed
+                continue;
+
+            //If we're still here, the current word is only in this dictionary, and not in the other
+
+            //Since one of the frecuencies is 0, the weight is just the other one, and the similarity is zero
+            //ponderated_sum+=0;//No need to add anything, since the similarity is 0
+            weight_sum+=word.first;
+        }
+
+        return ponderated_sum/weight_sum;//Return the similarity between dictionaries, division between the sum of the ponderated link smilarities and the weights
+    }
+
+
     /*
         WordNode
     */
