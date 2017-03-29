@@ -1445,6 +1445,8 @@ namespace TextGun
                     best_c2=temp;
                 }
 
+                std::cout << "Joining clusters (simil "<< best_simil<< "): " << *best_c1 << " and " << *best_c2 << "\n\n";
+
                 best_c1->join_cluster(*best_c2);
                 clusters.erase(best_c2);
             }
@@ -1530,11 +1532,13 @@ namespace TextGun
     /*Print*/
 
     //Print this cluster
-    std::ostream& ClusterWord::operator<<(std::ostream &os) const
+    std::ostream& operator<<(std::ostream &os, const ClusterWord &c)
     {
         bool first=true;
 
-        for (const Word &w : words)
+        os<<'{';
+
+        for (const Word &w : c.words)
         {
             if (first)
                 first=false;
@@ -1544,6 +1548,7 @@ namespace TextGun
             w.print(os);
         }
 
+        os<<'}';
         return os;
     }
 

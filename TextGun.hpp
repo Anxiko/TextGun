@@ -97,6 +97,13 @@ namespace TextGun
     //Return a string to another (purely based on size)
     bool return_utf8_string(std::string s,std::string::const_iterator &it,std::string::const_iterator e);
 
+    /* ClusterWord */
+
+    /*Printing*/
+
+    //Print this cluster
+    std::ostream& operator<< (std::ostream &os, const ClusterWord &c);
+
     /*
         Data types
      */
@@ -618,12 +625,6 @@ namespace TextGun
 
             //Join a cluster into this one
             void join_cluster(const ClusterWord &c);
-
-        /*Print*/
-        public:
-
-            //Print this cluster
-            std::ostream& operator<<(std::ostream &os) const;
     };
 
     //Model capable of learning and speaking
