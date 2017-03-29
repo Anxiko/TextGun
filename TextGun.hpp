@@ -80,6 +80,8 @@ namespace TextGun
 
     class WordModel;//Model capable of learning and speaking
 
+    class ClusterWord;//Cluster of similar words
+
     /*
         Function prototypes
     */
@@ -420,7 +422,7 @@ namespace TextGun
         public:
 
             //Check if a word exists (as a node in the graph)
-            bool check_word(const Word &w);
+            bool check_word(const Word &w) const;
 
             //Add a word to the node, increase its frecuency if it exists
             void add_word(const Word &w);
@@ -428,11 +430,20 @@ namespace TextGun
             //Get a node by pointer, nullptr if not found
             WordNode* get_node(const Word &w);
 
+            //Get a node by pointer to const, nullptr if not found
+            const WordNode* get_node(const Word &w) const;
+
         /*Links*/
         public:
 
             //Add a link between two nodes
             void add_link(const Word &prev, const Word &next);
+
+        /*Similarity*/
+        public:
+
+            //Similarity between two nodes. Always zero if either word is not found
+            prob_frec similarity_word(const Word &w1, const Word &w2) const;
 
         /*Read/write to file*/
         public:
@@ -594,7 +605,7 @@ namespace TextGun
         public:
 
             //Similarity between two nodes. Always zero if either word is not found
-            prob_frec similarity_word(const Word &w1, const Word &w2);
+            prob_frec similarity_word(const Word &w1, const Word &w2) const;
 
         /*Read/write to file*/
         public:
@@ -604,6 +615,50 @@ namespace TextGun
 
             //Read from file
             void read(std::istream &i);
+    };
+
+    //Cluster of similar words
+    class ClusterWord
+    {
+        /* Attributes */
+
+        /*Set*/
+        private:
+
+            std::set<Word> words;//Words in this cluster
+
+        /* Constructors, copy control */
+
+        /*Constructors*/
+        public:
+
+            //Default constructor
+            ClusterWord() = default;
+
+            //Constructor with initial word
+            ClusterWord(const Word &w);
+
+        /* Methods */
+
+        /*Clustering*/
+        public:
+
+            //Similarity
+
+            //Similarity between two clusters
+            /*
+                The similarity between clusters is calculated
+                using the similarity between the words of each clusters,
+                doing the weighted arithmetic average.
+
+                The calculus is done for each pair of words,
+                the value is the similarity between words,
+                the weight is the hypotenuses calculus (the sides of the triangles are the frecuencies of each word)
+            */
+            static prob_frec similarity_cluster(const ClusterWord &c1, const ClusterWord &c2, const WordGraph &g);
+
+            //Join a cluster into this one
+            void join_cluster(const ClusterWord &c);
     };
 
 }//End of namespace

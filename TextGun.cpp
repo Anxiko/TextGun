@@ -682,9 +682,9 @@ namespace TextGun
     /*Nodes*/
 
     //Check if a word exists (as a node in the graph)
-    bool WordGraph::check_word(const Word &w)
+    bool WordGraph::check_word(const Word &w) const
     {
-        return nodes.find(w)!=nodes.end();
+        return nodes.find(w)!=nodes.cend();
     }
 
     //Add a word to the node, increase its frecuency if it exists
@@ -712,6 +712,17 @@ namespace TextGun
         return nullptr;
     }
 
+    //Get a node by pointer, nullptr if not found
+    const WordNode* WordGraph::get_node(const Word &w) const
+    {
+        if(check_word(w))
+        {
+            const WordNode &node=nodes.at(w);
+            return &node;
+        }
+        return nullptr;
+    }
+
     /*Links*/
 
     //Add a link between two nodes
@@ -722,6 +733,20 @@ namespace TextGun
         //Add link prev -> next
         nodes.at(prev).add_next(next);
         nodes.at(next).add_prev(prev);
+    }
+
+    //Similarity between two nodes. Always zero if either word is not found
+    prob_frec WordGraph::similarity_word(const Word &w1, const Word &w2) const
+    {
+        //First, get the nodes of these words
+        const WordNode *n1=get_node(w1),*n2=get_node(w2);
+
+        //If both nodes were found, compute and return their similarity
+        if (n1&&n2)
+            return WordNode::similarity_node(*n1,*n2);
+
+        //If either of the pointers was null, word was not found on the graph. Return zero
+        return 0;
     }
 
     /*Read/write to file*/
@@ -1375,17 +1400,9 @@ namespace TextGun
     /*Similarity*/
 
     //Similarity between two nodes. Always zero if either word is not found
-    prob_frec WordModel::similarity_word(const Word &w1, const Word &w2)
+    prob_frec WordModel::similarity_word(const Word &w1, const Word &w2) const
     {
-        //First, get the nodes of these words
-        WordNode *n1=graph.get_node(w1),*n2=graph.get_node(w2);
-
-        //If both nodes were found, compute and return their similarity
-        if (n1&&n2)
-            return WordNode::similarity_node(*n1,*n2);
-
-        //If either of the pointers was null, word was not found on the graph. Return zero
-        return 0;
+        return graph.similarity_word(w1,w2);
     }
 
     /*Read/write to file*/
@@ -1400,6 +1417,68 @@ namespace TextGun
     void WordModel::read(std::istream &i)
     {
         graph.read(i);
+    }
+
+    /*
+        ClusterWord
+    */
+
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Constructor with initial word
+    ClusterWord::ClusterWord(const Word &w)
+    :words({w})
+    {}
+
+    /* Methods */
+
+    /*Clustering*/
+
+    //Similarity
+
+    //Similarity between two clusters
+    prob_frec ClusterWord::similarity_cluster(const ClusterWord &c1, const ClusterWord &c2, const WordGraph &g)
+    {
+        prob_frec ponderated_sum=0;//Ponderated sum of the similarities (dividend)
+        prob_frec weight_sum=0;//Sum of weights (divider)
+
+        //Process the pair of words
+        for (const Word &w1 : c1.words)//Iterate over the words of the first cluster
+        {
+            for (const Word &w2 : c2.words)//Iterate over the words of the second cluster
+            {
+                //Get the nodes of both words
+                const WordNode *ptr_w1 = g.get_node(w1);
+                const WordNode *ptr_w2 = g.get_node(w2);
+
+                int f1 = ptr_w1==nullptr?0:ptr_w1->f;
+                int f2 = ptr_w2==nullptr?0:ptr_w2->f;
+
+                if (f1||f2)//Check that either of the words exists, before proceding
+                {
+                    prob_frec weight = std::hypot(f1,f2);//Weight of this value
+                    prob_frec simil = g.similarity_word(w1,w2);
+
+                    //Update the sums
+                    ponderated_sum+=weight*simil;
+                    weight_sum+=weight;
+                }
+            }
+        }
+
+        return weight_sum?ponderated_sum/weight_sum:0;
+    }
+
+    //Join a cluster into this one
+    void ClusterWord::join_cluster(const ClusterWord &c)
+    {
+        auto pos = words.cbegin();
+        for (auto it = c.words.cbegin(); it != c.words.cend(); ++it)
+        {
+            pos = words.insert(pos, *it);
+        }
     }
 
 }//End of namespace
