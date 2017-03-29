@@ -1420,11 +1420,15 @@ namespace TextGun
             prob_frec best_simil = 0;//Similarity of the most similar pair of clusters to join
             std::list<ClusterWord>::iterator best_c1=clusters.end(),best_c2=clusters.end();//Best clusters to join
 
+            std::cout << clusters.size()<< " cluster(s) left\n\n";
+
             for (auto it1 = clusters.begin(); it1!=clusters.end(); ++it1)
             {
                 for (auto it2 = std::next(it1); it2!=clusters.end(); ++it2)
                 {
                     prob_frec simil = ClusterWord::similarity_cluster(*it1,*it2,graph);//Calculate the similarity between this pair of nodes
+
+                    //std::cout << "\t\tSimi ("<< simil <<"): " << *it1 << " and " << *it2<<'\n';
 
                     if (simil>best_simil)
                     {
@@ -1449,6 +1453,11 @@ namespace TextGun
 
                 best_c1->join_cluster(*best_c2);
                 clusters.erase(best_c2);
+            }
+            else
+            {
+                std::cout << "These clusters have simil = 0, breaking...\n\n";
+                break;
             }
         }
     }

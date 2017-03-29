@@ -158,6 +158,9 @@ int main()
                                 empty_model=false;
                             }
                         }
+
+                        std::cout << "\nPerforming clustering\n\n";
+                        model.clustering();
                     }
                     else
                         std::cout<<"ERROR! Reading from file "<<file<<'\n';
