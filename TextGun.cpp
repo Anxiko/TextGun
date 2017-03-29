@@ -529,13 +529,13 @@ namespace TextGun
         //Iterate over the first dictionary
         for  (const std::pair< int,Word > &word : ptr_d1->words)//Iterate over the links of the bigger dictionary, get a pair of the word and its frecuency
         {
-            int f1=word.first;//The first frecuency can be extracted directly from the pair
-            int f2=0;//Second frecuency, not yet known (will remain at 0 if not found)
+            prob_frec f1=static_cast<prob_frec>(word.first)/static_cast<prob_frec>(ptr_d1->f);//The first frecuency can be extracted directly from the pair
+            prob_frec f2=0;//Second frecuency, not yet known (will remain at 0 if not found)
 
             //Look for the link using the word on the other dictionary
              std::map< Word,std::list< std::pair< int,Word > >::iterator >::const_iterator it = ptr_d2->dict.find(word.second);
              if (it!=ptr_d2->dict.cend())//Link exists, get the frecuency
-                f2=it->second->first;//Get the frecuency from the iterator to the the list
+                f2=static_cast<prob_frec>(it->second->first)/static_cast<prob_frec>(ptr_d2->f);//Get the frecuency from the iterator to the the list
 
             //Might want to check that f1+f2!=0 here? Shouldn't happen, since it being on the bigger dictionary implies f1 is not zero
 
@@ -561,7 +561,7 @@ namespace TextGun
 
             //Since one of the frecuencies is 0, the weight is just the other one, and the similarity is zero
             //ponderated_sum+=0;//No need to add anything, since the similarity is 0
-            weight_sum+=word.first;
+            weight_sum+=static_cast<prob_frec>(word.first)/static_cast<prob_frec>(ptr_d2->f);
         }
 
         return ponderated_sum/weight_sum;//Return the similarity between dictionaries, division between the sum of the ponderated link smilarities and the weights
