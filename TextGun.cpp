@@ -82,6 +82,10 @@ namespace TextGun
     //Word to be returned if an error arises during reading
     const Word ITextStream::DEF_ERR_WORD(WordType::END);
 
+    /* ClusterWord */
+
+    ClusterWord::cuid ClusterWord::guid=0u;//Generator of unique identifiers
+
     /*
             Functions
     */
@@ -1473,9 +1477,14 @@ namespace TextGun
 
     /*Constructors*/
 
+    //Default constructor
+    ClusterWord::ClusterWord()
+    :words(),id(ClusterWord::get_id())
+    {}
+
     //Constructor with initial word
     ClusterWord::ClusterWord(const Word &w)
-    :words({w})
+    :words({w}),id(ClusterWord::get_id())
     {}
 
     /* Methods */
@@ -1525,6 +1534,14 @@ namespace TextGun
         {
             pos = words.insert(pos, *it);
         }
+    }
+
+    /*IDs and caching*/
+
+    //Get a valid ID
+    ClusterWord::cuid ClusterWord::get_id()
+    {
+        return ClusterWord::guid++;
     }
 
 }//End of namespace
