@@ -1405,6 +1405,52 @@ namespace TextGun
         return graph.similarity_word(w1,w2);
     }
 
+    //Generate the clusters
+    void WordModel::clustering()
+    {
+        //First, add the initial clusters
+        for (const auto &word : graph.nodes)
+        {
+            clusters.emplace_back(word.first);
+        }
+
+        //Then, do the hierarchical clustering
+        while(clusters.size()>1)//Continue joining until there's only one cluster left
+        {
+            prob_frec best_simil = 0;//Similarity of the most similar pair of clusters to join
+            std::list<ClusterWord>::iterator best_c1=clusters.end(),best_c2=clusters.end();//Best clusters to join
+
+            for (auto it1 = clusters.begin(); it1!=clusters.end(); ++it1)
+            {
+                for (auto it2 = std::next(it1); it2!=clusters.end(); ++it2)
+                {
+                    prob_frec simil = ClusterWord::similarity_cluster(*it1,*it2,graph);//Calculate the similarity between this pair of nodes
+
+                    if (simil>best_simil)
+                    {
+                        best_c1=it1;
+                        best_c2=it2;
+
+                        best_simil=simil;
+                    }
+                }
+            }
+
+            if (best_c1!=clusters.end() && best_c2!=clusters.end())
+            {
+                if (best_c1->words.size() < best_c2->words.size())
+                {
+                    auto temp=best_c1;
+                    best_c1=best_c2;
+                    best_c2=temp;
+                }
+
+                best_c1->join_cluster(*best_c2);
+                clusters.erase(best_c2);
+            }
+        }
+    }
+
     /*Read/write to file*/
 
     //Write to file

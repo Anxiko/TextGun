@@ -400,6 +400,12 @@ namespace TextGun
     //Contains the WordNodes, indexed by their Word
     class WordGraph
     {
+        /* Config */
+
+        /*Friends*/
+
+            friend class WordModel;
+
         /* Attributes */
 
         /*Nodes*/
@@ -569,61 +575,13 @@ namespace TextGun
             bool write(const Word &w);
     };
 
-    //Model capable of learning and speaking
-    class WordModel
-    {
-        /* Attributes */
-
-        /*Nodes*/
-        private:
-
-            WordGraph graph;//Graph to be trained and to generate sentences
-
-        /* Constructors, copy control */
-
-        /*Constructors*/
-        public:
-
-            //Default constructor
-            WordModel();
-
-        /* Methods */
-
-        /*Learn*/
-        public:
-
-            //Learn from a text stream
-            void learn(ITextStream &ts);
-
-        /*Speak*/
-        public:
-
-            //Generate a line using the model
-            void think(OTextStream &ots);
-
-        /*Similarity*/
-        public:
-
-            //Similarity between two nodes. Always zero if either word is not found
-            prob_frec similarity_word(const Word &w1, const Word &w2) const;
-
-        /*Read/write to file*/
-        public:
-
-            //Write to file
-            void write(std::ostream &o) const;
-
-            //Read from file
-            void read(std::istream &i);
-    };
-
     //Cluster of similar words
     class ClusterWord
     {
         /* Attributes */
 
         /*Set*/
-        private:
+        public:
 
             std::set<Word> words;//Words in this cluster
 
@@ -661,6 +619,57 @@ namespace TextGun
             void join_cluster(const ClusterWord &c);
     };
 
+    //Model capable of learning and speaking
+    class WordModel
+    {
+        /* Attributes */
+
+        /*Nodes*/
+        private:
+
+            WordGraph graph;//Graph to be trained and to generate sentences
+            std::list<ClusterWord> clusters;//List of clusters of similar words
+
+        /* Constructors, copy control */
+
+        /*Constructors*/
+        public:
+
+            //Default constructor
+            WordModel();
+
+        /* Methods */
+
+        /*Learn*/
+        public:
+
+            //Learn from a text stream
+            void learn(ITextStream &ts);
+
+        /*Speak*/
+        public:
+
+            //Generate a line using the model
+            void think(OTextStream &ots);
+
+        /*Similarity*/
+        public:
+
+            //Similarity between two nodes. Always zero if either word is not found
+            prob_frec similarity_word(const Word &w1, const Word &w2) const;
+
+            //Generate the clusters
+            void clustering();
+
+        /*Read/write to file*/
+        public:
+
+            //Write to file
+            void write(std::ostream &o) const;
+
+            //Read from file
+            void read(std::istream &i);
+    };
 }//End of namespace
 
 //End of library
