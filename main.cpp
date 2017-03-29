@@ -181,7 +181,7 @@ int main()
                     w1.print(std::cout);
                     std::cout << " and ";
                     w2.print(std::cout);
-                    std::cout << " is \n\n";
+                    std::cout << " is " << model.similarity_word(w1,w2) << "\n\n";
 
                     break;
                 }
