@@ -20,6 +20,7 @@ enum Options: int
     READ,//Read model from file
     WRITE,//Write the model to file
     LEARN,//Learn model from file
+    COMPARE,//Compare two words
     EXIT,//Exit the program
     ERROR,//Invalid option
     END//End of valid values
@@ -36,6 +37,9 @@ std::string read_filename();
 
 //Read a complete line, except the new line character
 std::string read_line();
+
+//Read a word and its type from the keyboard
+TextGun::Word read_word();
 
 int main()
 {
@@ -165,6 +169,23 @@ int main()
                     break;
                 }
 
+                //Compare two words
+                case Options::COMPARE:
+                {
+                    std::cout << "\nGet the 1st word\n\n";
+                    TextGun::Word w1=read_word();
+                    std::cout << "\nGet the 2nd word\n\n";
+                    TextGun::Word w2=read_word();
+
+                    std::cout << "The similarity between ";
+                    w1.print(std::cout);
+                    std::cout << " and ";
+                    w2.print(std::cout);
+                    std::cout << " is \n\n";
+
+                    break;
+                }
+
                 //Exit the program
                 case Options::EXIT:
                 {
@@ -196,6 +217,7 @@ Options menu()
     std::cout<<'['<<Options::READ<<']'<<" Read \t- read a binary file of a previously saved model\n";
     std::cout<<'['<<Options::WRITE<<']'<<" Write \t- write current model to binary format\n";
     std::cout<<'['<<Options::LEARN<<']'<<" Learn \t- generate a model from a text file (one entry per new line, no empty lines)\n\n";
+    std::cout<<'['<<Options::COMPARE<<']'<<" Compare \t- get the similarity between two nodes in the graph\n\n";
     std::cout<<'['<<Options::EXIT<<']'<<" Exit \t- leave the program\n";
     std::cout<<"Option => ";
 
@@ -250,4 +272,64 @@ std::string read_line()
     std::getline(std::cin,s);
 
     return std::move(s);
+}
+
+//Read a word and its type from the keyboard
+TextGun::Word read_word()
+{
+    //Read the type first
+    int type=static_cast<int>(TextGun::WordType::END)+1;
+    do
+    {
+        std::cout << "Input the type of the word\n";
+        std::cout << "START = 0\n";
+        std::cout << "WORD = 1\n";
+        std::cout << "SYMBOL = 2\n";
+        std::cout << "L_DELIM = 3\n";
+        std::cout << "R_DELIM  = 4\n";
+        std::cout << "L_STOP = 5\n";
+        std::cout << "R_STOP  = 6\n";
+        std::cout << "INT  = 7\n";
+        std::cout << "DECIMAL  = 8\n";
+        std::cout << "END  = 9\n";
+        std::cout << "Type: ";
+
+        std::string line;
+        std::getline(std::cin,line);
+        std::stringstream ss(line);
+
+        ss >> type;
+
+    }while(type<static_cast<int>(TextGun::WordType::START) || type>static_cast<int>(TextGun::WordType::END));
+
+    //If it's a type with content, read it too
+    std::string s;
+
+    switch (static_cast<TextGun::WordType>(type))
+    {
+        case TextGun::WordType::WORD:
+        case TextGun::WordType::SYMBOL:
+        case TextGun::WordType::L_DELIM:
+        case TextGun::WordType::R_DELIM:
+        case TextGun::WordType::L_STOP:
+        case TextGun::WordType::R_STOP:
+        case TextGun::WordType::INT:
+        case TextGun::WordType::DECIMAL:
+        {
+            std::cout <<"Input the word's content: ";
+
+            std::string line;
+            std::getline(std::cin,line);
+
+            std::stringstream ss(line);
+            ss >> s;
+
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return TextGun::Word(s,static_cast<TextGun::WordType>(type));
 }
