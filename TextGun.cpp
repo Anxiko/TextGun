@@ -545,7 +545,7 @@ namespace TextGun
 
             //Add these values to the total
             ponderated_sum+=weight*simil;//Add the ponderated similarity to the sum
-            weight_sum+=weight_sum;//Add the weight to the sum
+            weight_sum+=weight;//Add the weight to the sum
         }
 
         //Iterate over the second dictionary
