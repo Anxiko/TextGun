@@ -257,7 +257,7 @@ namespace TextGun
     /*Printing*/
 
     //Human readable printing
-    void Word::print(std::ostream &os)
+    void Word::print(std::ostream &os) const
     {
         switch (t)
         {
@@ -1525,6 +1525,26 @@ namespace TextGun
         {
             pos = words.insert(pos, *it);
         }
+    }
+
+    /*Print*/
+
+    //Print this cluster
+    std::ostream& ClusterWord::operator<<(std::ostream &os) const
+    {
+        bool first=true;
+
+        for (const Word &w : words)
+        {
+            if (first)
+                first=false;
+            else
+                std::cout<<" ,";
+
+            w.print(os);
+        }
+
+        return os;
     }
 
 }//End of namespace

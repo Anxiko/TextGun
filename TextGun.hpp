@@ -51,6 +51,7 @@
 #include <istream>//Reading from file
 #include <cctype>//Char functions
 #include <cmath>//Hypotenuse and square root
+#include <iostream>//cin and cout
 
 /* Defines */
 
@@ -235,7 +236,7 @@ namespace TextGun
         public:
 
             //Human readable printing
-            void print(std::ostream &os);
+            void print(std::ostream &os) const;
 
     };
 
@@ -617,6 +618,12 @@ namespace TextGun
 
             //Join a cluster into this one
             void join_cluster(const ClusterWord &c);
+
+        /*Print*/
+        public:
+
+            //Print this cluster
+            std::ostream& operator<<(std::ostream &os) const;
     };
 
     //Model capable of learning and speaking
