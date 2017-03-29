@@ -621,6 +621,15 @@ namespace TextGun
         ++f;
     }
 
+    /*Similarity*/
+
+    //Similarity between two nodes
+    prob_frec WordNode::similarity_node(const WordNode &n1, const WordNode &n2)
+    {
+        //Calculate the forward and backward similarities, and return their product
+        return FrecLink::similarity_frec_link(n1.prev,n2.prev)*FrecLink::similarity_frec_link(n1.next,n2.next);
+    }
+
     /*Read/write to file*/
 
     //Write to file
@@ -1361,6 +1370,22 @@ namespace TextGun
 
         //Close the stream
         ots.write(end_word);
+    }
+
+    /*Similarity*/
+
+    //Similarity between two nodes. Always zero if either word is not found
+    prob_frec WordModel::similarity_word(const Word &w1, const Word &w2)
+    {
+        //First, get the nodes of these words
+        WordNode *n1=graph.get_node(w1),*n2=graph.get_node(w2);
+
+        //If both nodes were found, compute and return their similarity
+        if (n1&&n2)
+            return WordNode::similarity_node(*n1,*n2);
+
+        //If either of the pointers was null, word was not found on the graph. Return zero
+        return 0;
     }
 
     /*Read/write to file*/

@@ -372,6 +372,17 @@ namespace TextGun
                 return w;
             }
 
+        /*Similarity*/
+        public:
+
+            //Similarity between two nodes
+            /*
+                The similarity between two word nodes is calculated as the product
+                between the similarity between their forward dictionaries, and the similarity between their backward dictionaries
+            */
+
+            static prob_frec similarity_node(const WordNode &n1, const WordNode &n2);
+
         /*Read/write to file*/
         public:
 
@@ -578,6 +589,12 @@ namespace TextGun
 
             //Generate a line using the model
             void think(OTextStream &ots);
+
+        /*Similarity*/
+        public:
+
+            //Similarity between two nodes. Always zero if either word is not found
+            prob_frec similarity_word(const Word &w1, const Word &w2);
 
         /*Read/write to file*/
         public:
