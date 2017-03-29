@@ -589,6 +589,11 @@ namespace TextGun
 
             static cuid guid;//Generator of unique identifiers
 
+        /*Cache*/
+        private:
+
+            static std::map<std::pair<cuid,cuid>,prob_frec> cache_simil;//Cached similarity values
+
         /* Attributes */
 
         /*Set*/

@@ -84,7 +84,11 @@ namespace TextGun
 
     /* ClusterWord */
 
+    /*UID*/
     ClusterWord::cuid ClusterWord::guid=0u;//Generator of unique identifiers
+
+    /*Cache*/
+    std::map<std::pair<ClusterWord::cuid,ClusterWord::cuid>,prob_frec> ClusterWord::cache_simil;//Cached similarity values
 
     /*
             Functions
@@ -1496,6 +1500,14 @@ namespace TextGun
     //Similarity between two clusters
     prob_frec ClusterWord::similarity_cluster(const ClusterWord &c1, const ClusterWord &c2, const WordGraph &g)
     {
+        //Check if the value has already been calculated
+        std::pair<cuid,cuid> key(std::min(c1.id,c2.id),std::max(c1.id,c2.id));
+
+        auto it = ClusterWord::cache_simil.find(key);
+        if (it!=ClusterWord::cache_simil.end())//If found, return it
+            return key.second;
+
+
         prob_frec ponderated_sum=0;//Ponderated sum of the similarities (dividend)
         prob_frec weight_sum=0;//Sum of weights (divider)
 
@@ -1523,7 +1535,12 @@ namespace TextGun
             }
         }
 
-        return weight_sum?ponderated_sum/weight_sum:0;
+        prob_frec rv=weight_sum?ponderated_sum/weight_sum:0;//Value to be returned
+
+        //Save to cache before returning it
+        ClusterWord::cache_simil.insert(std::map<std::pair<cuid,cuid>,prob_frec>::value_type(key,rv));
+
+        return rv;
     }
 
     //Join a cluster into this one
