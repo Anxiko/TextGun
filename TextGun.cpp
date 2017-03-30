@@ -1516,7 +1516,7 @@ namespace TextGun
 
         auto it = ClusterWord::cache_simil.find(key);
         if (it!=ClusterWord::cache_simil.end())//If found, return it
-            return key.second;
+            return it->second;
 
 
         prob_frec ponderated_sum=0;//Ponderated sum of the similarities (dividend)
