@@ -586,12 +586,29 @@ namespace TextGun
     //Cluster of similar words
     class ClusterWord
     {
+        /* Config */
+
+        /*UID*/
+        public:
+
+            typedef unsigned int cuid;//Type of the cluster's ID
+
+        private:
+
+            static cuid guid;//Generator of unique identifiers
+
+        /*Cache*/
+        private:
+
+            static std::map<std::pair<cuid,cuid>,prob_frec> cache_simil;//Cached similarity values
+
         /* Attributes */
 
         /*Set*/
         public:
 
             std::set<Word> words;//Words in this cluster
+            cuid id;//Identifier for this cluster
 
         /* Constructors, copy control */
 
@@ -599,7 +616,7 @@ namespace TextGun
         public:
 
             //Default constructor
-            ClusterWord() = default;
+            ClusterWord();
 
             //Constructor with initial word
             ClusterWord(const Word &w);
@@ -625,6 +642,12 @@ namespace TextGun
 
             //Join a cluster into this one
             void join_cluster(const ClusterWord &c);
+
+        /*IDs and caching*/
+        private:
+
+            //Get a valid ID
+            static cuid get_id();
     };
 
     //Model capable of learning and speaking
