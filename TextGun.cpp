@@ -1551,6 +1551,8 @@ namespace TextGun
         {
             pos = words.insert(pos, *it);
         }
+
+        id=ClusterWord::get_id();
     }
 
     /*IDs and caching*/
