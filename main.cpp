@@ -99,7 +99,7 @@ int main()
                         std::ifstream input(file,std::ios::in|std::ios::binary);
                         if(input.is_open())//If the file is open, save
                         {
-                            model.read(input);
+                            std::cerr<<"WARNING: Binary read/write operations disabled. No changes peformed"<<std::endl;
                             empty_model=false;
                         }
                         else
@@ -122,7 +122,7 @@ int main()
                     {
                         if (unsaved_changes)//If there are unsaved changes, go ahead
                         {
-                            model.write(output);
+                            std::cerr<<"WARNING: Binary read/write operations disabled. No changes peformed"<<std::endl;
                             unsaved_changes=false;
                         }
                         else//If there are no changes, no need to save

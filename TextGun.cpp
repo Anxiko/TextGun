@@ -355,27 +355,30 @@ namespace TextGun
     /*Add/delete*/
 
     //Add a word to the list
-    void FrecLink::add_word(const Word &w)
+    void FrecLink::add_word(WordNode &w)
     {
+        //Get the pointer to the node
+        WordNode *ptr=&w;
+
         ++f;//Increase the frecuency of total links
 
         //Check if the word is on the list
-        if (dict.find(w)==dict.end())//Not found
+        if (dict.find(ptr)==dict.end())//Not found
         {
             //Insert it at the end of the list with frec=1 (since it's the first time this word's been seen)
-            words.emplace_back(1,w);
+            words.emplace_back(1,ptr);
             //Add the word to the dictionary
-            dict[w]=std::prev(words.end());//Save the iterator to the last element of the list, where the word is now saved
+            dict[ptr]=std::prev(words.end());//Save the iterator to the last element of the list, where the word is now saved
 
             ++n;//A new node on the list
         }
         else//Found
         {
-            std::list< std::pair< int,Word > >::iterator pos=dict[w];//Get the position of the pair
+            std::list< std::pair< int,WordNode * > >::iterator pos=dict[ptr];//Get the position of the pair
             ++(pos->first);//Increment the frecuency by one
 
             //Find the new position on the list for this element
-            std::list< std::pair< int,Word > >::iterator new_pos=keep_sorted_swap(pos);
+            std::list< std::pair< int,WordNode * > >::iterator new_pos=keep_sorted_swap(pos);
 
             //Swap positions, only if they're different
             if (pos!=new_pos) words.splice(new_pos,words,pos);
@@ -383,9 +386,9 @@ namespace TextGun
     }
 
     //Take an iterator to a word on the list, and return another word to swap them so that the list is still sorted. Return the same iterator if no swap is needed
-    std::list< std::pair< int,Word > >::iterator FrecLink::keep_sorted_swap(const std::list< std::pair< int,Word > >::iterator &pos) const
+    std::list< std::pair< int,WordNode * > >::iterator FrecLink::keep_sorted_swap(const std::list< std::pair< int,WordNode * > >::iterator &pos) const
     {
-        std::reverse_iterator< std::list< std::pair< int,Word > >::iterator > rev_it(pos);//Reverse operator to start looking at one upper from this one
+        std::reverse_iterator< std::list< std::pair< int,WordNode * > >::iterator > rev_it(pos);//Reverse operator to start looking at one upper from this one
         /*
           std::advance(rev_it,1);//Advance the iterator by one, no longer looking at the same element, but at the upper one. Iterator's valid because pos!=begin()
           No need to do this! Given the way reverse iterators work, rev_it is using pos as its base(), so it's alredy pointing at the next value
@@ -415,7 +418,7 @@ namespace TextGun
     /*Links*/
 
     //Get a random word based on frecuency
-    Word FrecLink::get_rand() const
+    WordNode * FrecLink::get_rand() const
     {
         //Create the RNG to use it with the engine
         std::uniform_int_distribution<> dt(0,f-1);
@@ -424,7 +427,7 @@ namespace TextGun
         int n=dt(re);
 
         //Navigate through the links until the goal number is met
-        for (std::pair< int,Word > w : words)
+        for (std::pair< int,WordNode * > w : words)
         {
             n-=w.first;//Decrease the goal by this word's frecuency
 
@@ -433,60 +436,7 @@ namespace TextGun
         }
 
         //If no word is found, an error just happened
-        return Word(WordType::END);//Should throw an exception, by the time being the END world will be returned. Note that the word END is valid
-    }
-
-    /*Read/write to file*/
-
-    //Write word to stream
-    void FrecLink::write(std::ostream &o) const
-    {
-        //Write the number of entries
-        o.write(reinterpret_cast<const char *>(&n),sizeof(int));
-        //Write the sum of the frecuencies
-        o.write(reinterpret_cast<const char *>(&f),sizeof(int));
-
-        //Write the list
-        for(const std::pair< int,Word > &p : words)
-        {
-            //Write the frec
-            o.write(reinterpret_cast<const char *>(&p.first),sizeof(int));
-
-            //Write the word
-            p.second.write(o);
-        }
-    }
-
-    //Read word to stream
-    void FrecLink::read(std::istream &i)
-    {
-        //Read number of entries
-        n=0;//Set to zero in case of fail reading
-        i.read(reinterpret_cast<char *>(&n),sizeof(int));
-        //Read the sum of the frecuencies
-        i.read(reinterpret_cast<char *>(&f),sizeof(int));
-
-        //Iterator to insert
-        auto it=words.begin()==words.end()?words.begin():std::prev(words.end());//This list should always be empty, just to make sure, start at the end
-
-        //Read the list
-        int iters=n;
-        while(iters-->0)//Read all the entries
-        {
-            //Read the frec
-            int word_frec=0;
-            i.read(reinterpret_cast<char *>(&word_frec),sizeof(int));
-
-            //Read the word
-            Word w("");
-            w.read(i);
-
-            //Insert the word on the list
-            it=words.emplace(it,word_frec,w);
-
-            //Insert the word on the map
-            dict[w]=it++;//Increment the iterator after inserting, as to keep inserting after the end
-        }
+        return nullptr;//Should throw an exception, by the time being a nullptr will be retuned
     }
 
     /*Similarity*/
@@ -535,13 +485,13 @@ namespace TextGun
 
 
         //Iterate over the first dictionary
-        for  (const std::pair< int,Word > &word : ptr_d1->words)//Iterate over the links of the bigger dictionary, get a pair of the word and its frecuency
+        for  (const std::pair< int,WordNode * > &word : ptr_d1->words)//Iterate over the links of the bigger dictionary, get a pair of the word and its frecuency
         {
             prob_frec f1=static_cast<prob_frec>(word.first)/static_cast<prob_frec>(ptr_d1->f);//The first frecuency can be extracted directly from the pair
             prob_frec f2=0;//Second frecuency, not yet known (will remain at 0 if not found)
 
             //Look for the link using the word on the other dictionary
-             std::map< Word,std::list< std::pair< int,Word > >::iterator >::const_iterator it = ptr_d2->dict.find(word.second);
+             std::map< WordNode *,std::list< std::pair< int,WordNode * > >::iterator >::const_iterator it = ptr_d2->dict.find(word.second);
              if (it!=ptr_d2->dict.cend())//Link exists, get the frecuency
                 f2=static_cast<prob_frec>(it->second->first)/static_cast<prob_frec>(ptr_d2->f);//Get the frecuency from the iterator to the the list
 
@@ -557,10 +507,10 @@ namespace TextGun
         }
 
         //Iterate over the second dictionary
-        for  (const std::pair< int,Word > &word : ptr_d2->words)//Iterate over the links of the smaller dictionary, get a pair of the word and its frecuency
+        for  (const std::pair< int,WordNode * > &word : ptr_d2->words)//Iterate over the links of the smaller dictionary, get a pair of the word and its frecuency
         {
             //Before anything, check if this link has already being processed (it is in the bigger dictionary)
-            std::map< Word,std::list< std::pair< int,Word > >::iterator >::const_iterator it = ptr_d1->dict.find(word.second);
+            std::map< WordNode *,std::list< std::pair< int,WordNode * > >::iterator >::const_iterator it = ptr_d1->dict.find(word.second);
 
             if (it!=ptr_d1->dict.cend())//If it's in the other dictionary, skip it; it's already been processed
                 continue;
@@ -596,27 +546,27 @@ namespace TextGun
     //Add a link
 
     //Add a link to a previous word
-    void WordNode::add_prev(const Word &w)
+    void WordNode::add_prev(WordNode *w)
     {
-        prev.add_word(w);
+        prev.add_word(*w);
     }
 
     //Add a link to a next word
-    void WordNode::add_next(const Word &w)
+    void WordNode::add_next(WordNode *w)
     {
-        next.add_word(w);
+        next.add_word(*w);
     }
 
     //Get a random word
 
     //Get a random previous word
-    Word WordNode::get_prev() const
+    WordNode * WordNode::get_prev() const
     {
         return prev.get_rand();
     }
 
     //Get a random next word
-    Word WordNode::get_next() const
+    WordNode * WordNode::get_next() const
     {
         return next.get_rand();
     }
@@ -636,40 +586,6 @@ namespace TextGun
     {
         //Calculate the forward and backward similarities, and return their product
         return FrecLink::similarity_frec_link(n1.prev,n2.prev)*FrecLink::similarity_frec_link(n1.next,n2.next);
-    }
-
-    /*Read/write to file*/
-
-    //Write to file
-    void WordNode::write(std::ostream &o) const
-    {
-        //Write the word of the node
-        w.write(o);
-
-        //Write the frecuency
-        o.write(reinterpret_cast<const char *>(&f),sizeof(int));
-
-        //Write the links to previous words
-        prev.write(o);
-
-        //Write the links to next words
-        next.write(o);
-    }
-
-    //Read from file
-    void WordNode::read(std::istream &i)
-    {
-        //Read the word of the node
-        w.read(i);
-
-        //Read the frecuency
-        i.read(reinterpret_cast<char *>(&f),sizeof(int));
-
-        //Read the links to previous words
-        prev.read(i);
-
-        //Read the links to next words
-        next.read(i);
     }
 
     /*
@@ -737,10 +653,11 @@ namespace TextGun
     void WordGraph::add_link(const Word &prev, const Word &next)
     {
         //Assuming both nodes alredy exist
+        WordNode *ptr_prev=get_node(prev),*ptr_next=get_node(next);
 
         //Add link prev -> next
-        nodes.at(prev).add_next(next);
-        nodes.at(next).add_prev(prev);
+        ptr_prev->add_next(ptr_next);
+        ptr_next->add_prev(ptr_prev);
     }
 
     //Similarity between two nodes. Always zero if either word is not found
@@ -755,41 +672,6 @@ namespace TextGun
 
         //If either of the pointers was null, word was not found on the graph. Return zero
         return 0;
-    }
-
-    /*Read/write to file*/
-
-    //Write to file
-    void WordGraph::write(std::ostream &o) const
-    {
-        //Write the number of words
-        o.write(reinterpret_cast<const char *>(&n),sizeof(int));
-
-        //Write all the nodes
-        for(const std::pair< const Word, const WordNode > &n : nodes)
-            n.second.write(o);
-    }
-
-    //Read from file
-    void WordGraph::read(std::istream &i)
-    {
-        //Read the number of words
-        n=0;
-        i.read(reinterpret_cast<char *>(&n),sizeof(int));
-
-        //Read the words
-        int iters=n;
-        while(iters-->0)//Read all the words
-        {
-            //Node to read
-            WordNode wn(Word(""));
-
-            //Read the node
-            wn.read(i);
-
-            //Insert the node on the map, indexed by its word
-            nodes.insert(std::pair< Word,WordNode >(wn.get_word(),wn));
-        }
     }
 
     /*
@@ -1398,7 +1280,7 @@ namespace TextGun
             ots.write(node->get_word());//Print this node
 
             //Advance to next
-            node=graph.get_node(node->get_next());
+            node=node->get_next();
         }
 
         //Close the stream
@@ -1457,20 +1339,6 @@ namespace TextGun
                 clusters.erase(best_c2);
             }
         }
-    }
-
-    /*Read/write to file*/
-
-    //Write to file
-    void WordModel::write(std::ostream &o) const
-    {
-        graph.write(o);
-    }
-
-    //Read from file
-    void WordModel::read(std::istream &i)
-    {
-        graph.read(i);
     }
 
     /*

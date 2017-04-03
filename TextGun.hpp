@@ -256,10 +256,10 @@ namespace TextGun
         private:
 
             //Lists of words and their frecuency
-            std::list< std::pair< int,Word > > words;
+            std::list< std::pair< int,WordNode * > > words;
 
             //Dictionary that stores the position of each word on the list
-            std::map< Word,std::list< std::pair< int,Word > >::iterator > dict;
+            std::map< WordNode *,std::list< std::pair< int,WordNode * > >::iterator > dict;
 
             //Total number of words (sum of frec)
             int f;
@@ -281,27 +281,18 @@ namespace TextGun
         public:
 
             //Add a word to the list
-            void add_word(const Word &w);
+            void add_word(WordNode &w);
 
         private:
 
             //Take an iterator to a word on the list, and return another word to swap them so that the list is still sorted. Return the same iterator if no swap is needed
-             std::list< std::pair< int,Word > >::iterator keep_sorted_swap(const std::list< std::pair< int,Word > >::iterator &it) const;
+             std::list< std::pair< int,WordNode * > >::iterator keep_sorted_swap(const std::list< std::pair< int,WordNode * > >::iterator &it) const;
 
         /*Links*/
         public:
 
             //Get a random word based on frecuency
-            Word get_rand() const;
-
-        /*Read/write to file*/
-        public:
-
-            //Write word to stream
-            void write(std::ostream &o) const;
-
-            //Read word to stream
-            void read(std::istream &i);
+            WordNode * get_rand() const;
 
         /*Similarity*/
         public:
@@ -349,18 +340,18 @@ namespace TextGun
             //Add a link
 
             //Add a link to a previous word
-            void add_prev(const Word &w);
+            void add_prev(WordNode *w);
 
             //Add a link to a next word
-            void add_next(const Word &w);
+            void add_next(WordNode *w);
 
             //Get a random word
 
             //Get a random previous word
-            Word get_prev() const;
+            WordNode * get_prev() const;
 
             //Get a random next word
-            Word get_next() const;
+            WordNode * get_next() const;
 
         /*Word*/
         public:
@@ -384,16 +375,6 @@ namespace TextGun
             */
 
             static prob_frec similarity_node(const WordNode &n1, const WordNode &n2);
-
-        /*Read/write to file*/
-        public:
-
-            //Write to file
-            void write(std::ostream &o) const;
-
-            //Read from file
-            void read(std::istream &i);
-
     };
 
 
@@ -450,15 +431,6 @@ namespace TextGun
 
             //Similarity between two nodes. Always zero if either word is not found
             prob_frec similarity_word(const Word &w1, const Word &w2) const;
-
-        /*Read/write to file*/
-        public:
-
-            //Write to file
-            void write(std::ostream &o) const;
-
-            //Read from file
-            void read(std::istream &i);
     };
 
     //Provides the Words from a input stream
