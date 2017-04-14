@@ -82,6 +82,8 @@ namespace TextGun
 
     class ClusterWord;//Cluster of similar words
 
+    class ClusterRepr;//Representant of a cluster
+
     /*
         Function prototypes
     */
@@ -375,6 +377,12 @@ namespace TextGun
             */
 
             static prob_frec similarity_node(const WordNode &n1, const WordNode &n2);
+
+        /*Representant*/
+        public:
+
+            //Generate a representant for this node
+            ClusterRepr repr() const;
     };
 
 
@@ -547,10 +555,54 @@ namespace TextGun
             bool write(const Word &w);
     };
 
+    //Representant of a cluster
+    class ClusterRepr
+    {
+        /* Attributes */
+
+        /*Dictionaries*/
+        private:
+
+            std::map<WordNode *, int> prev,next;//Forward and backward frecuencies for each node
+
+            int f;//Sum of frecuencies
+
+        /* Constructors, copy control */
+
+        /*Constructors*/
+        public:
+
+            //Default constructor
+            ClusterRepr() = default;
+
+            //Move constructor
+            ClusterRepr(ClusterRepr &&mv);
+
+        /* Methods */
+
+        /*Dictionary*/
+        public:
+
+            //Add the links from another representant to this one
+            void add(const ClusterRepr &repr);
+
+            //Similarity between two representants (same formula as words)
+            static void similarity_repr(const ClusterRepr &a, const ClusterRepr &b);
+
+        /*Swapping*/
+        private:
+
+            void swap(ClusterRepr &&mv);
+    };
+
     //Cluster of similar words
     class ClusterWord
     {
         /* Config */
+
+        /*Friends*/
+
+            friend WordNode;
 
         /*UID*/
         public:

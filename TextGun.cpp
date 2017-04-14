@@ -1431,4 +1431,67 @@ namespace TextGun
         return ClusterWord::guid++;
     }
 
+    /*
+        ClusterRepr
+    */
+
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Move constructor
+    ClusterRepr::ClusterRepr(ClusterRepr &&mv)
+    :ClusterRepr()//Call default constructor, swap later
+    {
+        prev.swap(mv.prev);
+        next.swap(mv.next);
+        f=mv.f;
+        mv.f=0;
+    }
+
+    /* Methods */
+
+    /*Dictionary*/
+
+    //Add the links from another representant to this one
+    void ClusterRepr::add(const ClusterRepr &repr)
+    {
+        //Increase frecuencies
+        f+=repr.f;
+
+        //Update the previous nodes
+        for (const auto &prev_word: repr.prev)//Iterate over the other words
+        {
+            auto it=prev.find(prev_word.first);
+            if (it!=prev.end())//If the word already exists on this dictionary
+                it->second+=prev_word.second;//Increase its frecuency
+            else
+                prev.insert(prev_word);
+        }
+
+        //Update the next nodes
+        for (const auto &next_word: repr.next)//Iterate over the other words
+        {
+            auto it=next.find(next_word.first);
+            if (it!=next.end())//If the word already exists on this dictionary
+                it->second+=next_word.second;//Increase its frecuency
+            else
+                next.insert(next_word);
+        }
+
+    }
+
+    //Similarity between two representants (same formula as words)
+    void ClusterRepr::similarity_repr(const ClusterRepr &a, const ClusterRepr &b)
+    {
+
+    }
+
+    /*Swapping*/
+
+    void swap(ClusterRepr &&mv)
+    {
+
+    }
+
 }//End of namespace
