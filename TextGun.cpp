@@ -525,6 +525,20 @@ namespace TextGun
         return ponderated_sum/weight_sum;//Return the similarity between dictionaries, division between the sum of the ponderated link smilarities and the weights
     }
 
+    /*Copying*/
+
+    //Get a copy as a ReprFrecLink
+    ReprFrecLink FrecLink::get_repr_frec_link() const
+    {
+        std::map<WordNode *, int> frec;//Frecueny of links
+
+        for (const auto &word : words)//Insert the elements from the list in the map
+            frec.emplace(word.second,word.first);
+
+        //Return the ReprFrecLink
+        return ReprFrecLink(std::move(frec),f,n);
+    }
+
 
     /*
         WordNode
@@ -586,6 +600,14 @@ namespace TextGun
     {
         //Calculate the forward and backward similarities, and return their product
         return FrecLink::similarity_frec_link(n1.prev,n2.prev)*FrecLink::similarity_frec_link(n1.next,n2.next);
+    }
+
+    /*Representant*/
+
+    //Generate a representant for this node
+    ClusterRepr WordNode::get_repr() const
+    {
+        return ClusterRepr(std::move(prev.get_repr_frec_link()),std::move(next.get_repr_frec_link()));
     }
 
     /*
@@ -1446,6 +1468,16 @@ namespace TextGun
         this->swap(std::move(mv));
     }
 
+    //Complete constructor (copy)
+    ClusterRepr::ClusterRepr(const ReprFrecLink & iprev, const ReprFrecLink &inext)
+    :prev(iprev),next(inext)
+    {}
+
+    //Complete constructor (move)
+    ClusterRepr::ClusterRepr(ReprFrecLink &&iprev, ReprFrecLink &&inext)
+    :prev(iprev),next(inext)
+    {}
+
     /* Methods */
 
     /*Dictionary*/
@@ -1475,6 +1507,21 @@ namespace TextGun
     /*
         ReprFrecLink
     */
+
+
+    /* Constructors, copy control */
+
+    /*Constructors*/
+
+    //Complete constructor (copy)
+    ReprFrecLink::ReprFrecLink(const std::map<WordNode *,int> &ifrec, int if_, int in)
+    :frec(ifrec),f(if_),n(in)
+    {}
+
+    //Complete constructor (move)
+    ReprFrecLink::ReprFrecLink(std::map<WordNode *,int> &&ifrec, int if_, int in)
+    :frec(std::move(ifrec)),f(if_),n(in)
+    {}
 
     /* Methods */
 

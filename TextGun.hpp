@@ -308,6 +308,12 @@ namespace TextGun
             */
             static prob_frec similarity_frec_link(const FrecLink &d1, const FrecLink &d2);
 
+        /*Copying*/
+        public:
+
+            //Get a copy as a ReprFrecLink
+            ReprFrecLink get_repr_frec_link() const;
+
     };
 
     //Node for a word, frecuency and links on both directions
@@ -384,7 +390,7 @@ namespace TextGun
         public:
 
             //Generate a representant for this node
-            ClusterRepr repr() const;
+            ClusterRepr get_repr() const;
     };
 
 
@@ -584,6 +590,12 @@ namespace TextGun
             //Move constructor
             ReprFrecLink(ReprFrecLink &&) = default;
 
+            //Complete constructor (copy)
+            ReprFrecLink(const std::map<WordNode *,int> &ifrec, int if_, int in);
+
+            //Complete constructor (move)
+            ReprFrecLink(std::map<WordNode *,int> &&ifrec, int if_, int in);
+
         /* Methods */
 
         /*Dictionary*/
@@ -621,6 +633,12 @@ namespace TextGun
 
             //Move constructor
             ClusterRepr(ClusterRepr &&mv);
+
+            //Complete constructor (copy)
+            ClusterRepr(const ReprFrecLink & iprev, const ReprFrecLink &inext);
+
+            //Complete constructor (move)
+            ClusterRepr(ReprFrecLink &&iprev, ReprFrecLink &&inext);
 
         /* Methods */
 
