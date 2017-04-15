@@ -571,7 +571,7 @@ namespace TextGun
         /*Dictionaries*/
         private:
 
-            std::map<WordNode *, int> frec;//Frecueny of links
+            std::map<const WordNode *, int> frec;//Frecueny of links
 
             int f;//Sum of frecuencies
             int n;//Sum of links
@@ -591,10 +591,10 @@ namespace TextGun
             ReprFrecLink(ReprFrecLink &&) = default;
 
             //Complete constructor (copy)
-            ReprFrecLink(const std::map<WordNode *,int> &ifrec, int if_, int in);
+            ReprFrecLink(const std::map<const WordNode *,int> &ifrec, int if_, int in);
 
             //Complete constructor (move)
-            ReprFrecLink(std::map<WordNode *,int> &&ifrec, int if_, int in);
+            ReprFrecLink(std::map<const WordNode *,int> &&ifrec, int if_, int in);
 
         /* Methods */
 
@@ -685,8 +685,9 @@ namespace TextGun
         /*Set*/
         public:
 
-            std::set<Word> words;//Words in this cluster
+            std::set<const WordNode *> words;//Words in this cluster
             cuid id;//Identifier for this cluster
+            ClusterRepr repr;//Representant of this cluster
 
         /* Constructors, copy control */
 
@@ -697,7 +698,7 @@ namespace TextGun
             ClusterWord();
 
             //Constructor with initial word
-            ClusterWord(const Word &w);
+            ClusterWord(const WordNode *w);
 
         /* Methods */
 

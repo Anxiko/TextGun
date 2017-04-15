@@ -530,7 +530,7 @@ namespace TextGun
     //Get a copy as a ReprFrecLink
     ReprFrecLink FrecLink::get_repr_frec_link() const
     {
-        std::map<WordNode *, int> frec;//Frecueny of links
+        std::map<const WordNode *, int> frec;//Frecueny of links
 
         for (const auto &word : words)//Insert the elements from the list in the map
             frec.emplace(word.second,word.first);
@@ -1323,7 +1323,7 @@ namespace TextGun
         //First, add the initial clusters
         for (const auto &word : graph.nodes)
         {
-            clusters.emplace_back(word.first);
+            clusters.emplace_back(&word.second);
         }
 
         //Then, do the hierarchical clustering
@@ -1373,12 +1373,12 @@ namespace TextGun
 
     //Default constructor
     ClusterWord::ClusterWord()
-    :words(),id(ClusterWord::get_id())
+    :words(),id(ClusterWord::get_id()),repr()
     {}
 
     //Constructor with initial word
-    ClusterWord::ClusterWord(const Word &w)
-    :words({w}),id(ClusterWord::get_id())
+    ClusterWord::ClusterWord(const WordNode *w)
+    :words({w}),id(ClusterWord::get_id()),repr(w->get_repr())
     {}
 
     /* Methods */
@@ -1397,35 +1397,7 @@ namespace TextGun
         if (it!=ClusterWord::cache_simil.end())//If found, return it
             return it->second;
 
-
-        prob_frec ponderated_sum=0;//Ponderated sum of the similarities (dividend)
-        prob_frec weight_sum=0;//Sum of weights (divider)
-
-        //Process the pair of words
-        for (const Word &w1 : c1.words)//Iterate over the words of the first cluster
-        {
-            for (const Word &w2 : c2.words)//Iterate over the words of the second cluster
-            {
-                //Get the nodes of both words
-                const WordNode *ptr_w1 = g.get_node(w1);
-                const WordNode *ptr_w2 = g.get_node(w2);
-
-                int f1 = ptr_w1==nullptr?0:ptr_w1->f;
-                int f2 = ptr_w2==nullptr?0:ptr_w2->f;
-
-                if (f1||f2)//Check that either of the words exists, before proceding
-                {
-                    prob_frec weight = std::hypot(f1,f2);//Weight of this value
-                    prob_frec simil = g.similarity_word(w1,w2);
-
-                    //Update the sums
-                    ponderated_sum+=weight*simil;
-                    weight_sum+=weight;
-                }
-            }
-        }
-
-        prob_frec rv=weight_sum?ponderated_sum/weight_sum:0;//Value to be returned
+        prob_frec rv=ClusterRepr::similarity_repr(c1.repr,c2.repr);
 
         //Save to cache before returning it
         ClusterWord::cache_simil.insert(std::map<std::pair<cuid,cuid>,prob_frec>::value_type(key,rv));
@@ -1436,13 +1408,20 @@ namespace TextGun
     //Join a cluster into this one
     void ClusterWord::join_cluster(const ClusterWord &c)
     {
-        auto pos = words.cbegin();
+        /*
+            Since we're inserting entries that are sorted, we can speed up the process by giving the container a hint on where to put the new element.
+            The best hint is the position of the previously inserted element. Since they're sorted, they'll end closer on the map.
+            For the starter element, any hint will do.
+        */
+        auto pos = words.cbegin();//Hint to insert the elements (start by defaul)
         for (auto it = c.words.cbegin(); it != c.words.cend(); ++it)
         {
             pos = words.insert(pos, *it);
         }
 
         id=ClusterWord::get_id();
+
+        repr.add(c.repr);
     }
 
     /*IDs and caching*/
@@ -1514,12 +1493,12 @@ namespace TextGun
     /*Constructors*/
 
     //Complete constructor (copy)
-    ReprFrecLink::ReprFrecLink(const std::map<WordNode *,int> &ifrec, int if_, int in)
+    ReprFrecLink::ReprFrecLink(const std::map<const WordNode *,int> &ifrec, int if_, int in)
     :frec(ifrec),f(if_),n(in)
     {}
 
     //Complete constructor (move)
-    ReprFrecLink::ReprFrecLink(std::map<WordNode *,int> &&ifrec, int if_, int in)
+    ReprFrecLink::ReprFrecLink(std::map<const WordNode *,int> &&ifrec, int if_, int in)
     :frec(std::move(ifrec)),f(if_),n(in)
     {}
 
