@@ -1443,10 +1443,7 @@ namespace TextGun
     ClusterRepr::ClusterRepr(ClusterRepr &&mv)
     :ClusterRepr()//Call default constructor, swap later
     {
-        prev.swap(mv.prev);
-        next.swap(mv.next);
-        f=mv.f;
-        mv.f=0;
+        this->swap(std::move(mv));
     }
 
     /* Methods */
@@ -1456,42 +1453,133 @@ namespace TextGun
     //Add the links from another representant to this one
     void ClusterRepr::add(const ClusterRepr &repr)
     {
-        //Increase frecuencies
-        f+=repr.f;
-
-        //Update the previous nodes
-        for (const auto &prev_word: repr.prev)//Iterate over the other words
-        {
-            auto it=prev.find(prev_word.first);
-            if (it!=prev.end())//If the word already exists on this dictionary
-                it->second+=prev_word.second;//Increase its frecuency
-            else
-                prev.insert(prev_word);
-        }
-
-        //Update the next nodes
-        for (const auto &next_word: repr.next)//Iterate over the other words
-        {
-            auto it=next.find(next_word.first);
-            if (it!=next.end())//If the word already exists on this dictionary
-                it->second+=next_word.second;//Increase its frecuency
-            else
-                next.insert(next_word);
-        }
-
+        prev.add(repr.prev);
+        next.add(repr.next);
     }
 
     //Similarity between two representants (same formula as words)
-    void ClusterRepr::similarity_repr(const ClusterRepr &a, const ClusterRepr &b)
+    prob_frec ClusterRepr::similarity_repr(const ClusterRepr &a, const ClusterRepr &b)
     {
-
+        return ReprFrecLink::similarity_repr(a.prev,b.prev)*ReprFrecLink::similarity_repr(a.next,b.next);
     }
 
     /*Swapping*/
 
-    void swap(ClusterRepr &&mv)
+    void ClusterRepr::swap(ClusterRepr &&mv)
     {
+        //Swap the dictionary links
+        prev.swap(std::move(mv.prev));
+        next.swap(std::move(mv.next));
+    }
 
+    /*
+        ReprFrecLink
+    */
+
+    /* Methods */
+
+    /*Dictionary*/
+
+    //Add the links from another representant to this one
+    void ReprFrecLink::add(const ReprFrecLink &repr)
+    {
+        //Increase frecuencies
+        f+=repr.f;
+
+        //Update the nodes
+        for (const auto &word_node: repr.frec)//Iterate over the other words
+        {
+            auto it=frec.find(word_node.first);
+            if (it!=frec.end())//If the word already exists on this dictionary
+                it->second+=word_node.second;//Increase its frecuency
+            else//If it doesn't
+            {
+                frec.insert(word_node);//Add the new node
+                ++n;//New node on the map
+            }
+        }
+    }
+
+    //Similarity between two representants frecuency links (same formula as regular frecuency links)
+    prob_frec ReprFrecLink::similarity_repr(const ReprFrecLink &a, const ReprFrecLink &b)
+    {
+        //Set the first and last dictionary (bigger and smaller)
+        const ReprFrecLink *ptr_d1, *ptr_d2;//Pointers to the dictionaries (bigger one is d1)
+
+        if (a.n>b.n)//a is the bigger one
+        {
+            ptr_d1=&a;
+            ptr_d2=&b;
+        }
+        else//b is the bigger one
+        {
+            ptr_d1=&b;
+            ptr_d2=&a;
+        }
+
+        //Iterate over the dictionaries
+
+        prob_frec ponderated_sum=0;//Ponderated sum of the similarities (dividend)
+        prob_frec weight_sum=0;//Sum of weights (divider)
+
+
+        //Iterate over the first dictionary
+        for  (const auto &word : ptr_d1->frec)//Iterate over the links of the bigger dictionary, get a pair of the word and its frecuency
+        {
+            prob_frec f1=static_cast<prob_frec>(word.second)/static_cast<prob_frec>(ptr_d1->f);//The first frecuency can be extracted directly from the pair
+            prob_frec f2=0;//Second frecuency, not yet known (will remain at 0 if not found)
+
+            //Look for the link using the word on the other dictionary
+             auto it = ptr_d2->frec.find(word.first);
+             if (it!=ptr_d2->frec.cend())//Link exists, get the frecuency
+                f2=static_cast<prob_frec>(it->second)/static_cast<prob_frec>(ptr_d2->f);//Get the frecuency from the iterator to the the list
+
+            //Might want to check that f1+f2!=0 here? Shouldn't happen, since it being on the bigger dictionary implies f1 is not zero
+
+            //Calculate the value and the weight
+            prob_frec weight=std::hypot(f1,f2);//=(f1*f1+f2*f2)^(1/2), hypotenuse calculus
+            prob_frec simil=(2*std::sqrt(f1*f2))/(static_cast<prob_frec>(f1+f2));//Similarity degree between links, between 0 and 1
+
+            //Add these values to the total
+            ponderated_sum+=weight*simil;//Add the ponderated similarity to the sum
+            weight_sum+=weight;//Add the weight to the sum
+        }
+
+        //Iterate over the second dictionary
+        for  (const auto &word : ptr_d2->frec)//Iterate over the links of the smaller dictionary, get a pair of the word and its frecuency
+        {
+            //Before anything, check if this link has already being processed (it is in the bigger dictionary)
+            auto it = ptr_d1->frec.find(word.first);
+
+            if (it!=ptr_d1->frec.cend())//If it's in the other dictionary, skip it; it's already been processed
+                continue;
+
+            //If we're still here, the current word is only in this dictionary, and not in the other
+
+            //Since one of the frecuencies is 0, the weight is just the other one, and the similarity is zero
+            //ponderated_sum+=0;//No need to add anything, since the similarity is 0
+            weight_sum+=static_cast<prob_frec>(word.second)/static_cast<prob_frec>(ptr_d2->f);
+        }
+
+        return ponderated_sum/weight_sum;//Return the similarity between dictionaries, division between the sum of the ponderated link smilarities and the weights
+    }
+
+    /*Swapping*/
+
+    void ReprFrecLink::swap(ReprFrecLink &&mv)
+    {
+        //Swap the dictionaries
+        frec.swap(mv.frec);
+
+        //Swap the frecuency and number of links
+        auto temp_f=mv.f;
+        auto temp_n=mv.n;
+
+        mv.f=f;
+        mv.n=n;
+
+        f=temp_f;
+        n=temp_n;
     }
 
 }//End of namespace

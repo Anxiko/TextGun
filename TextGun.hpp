@@ -84,6 +84,8 @@ namespace TextGun
 
     class ClusterRepr;//Representant of a cluster
 
+    class ReprFrecLink;//Simplified frecuency link for a cluster representant
+
     /*
         Function prototypes
     */
@@ -555,6 +557,50 @@ namespace TextGun
             bool write(const Word &w);
     };
 
+    //Simplified frecuency link for a cluster representant
+    class ReprFrecLink
+    {
+        /* Attributes */
+
+        /*Dictionaries*/
+        private:
+
+            std::map<WordNode *, int> frec;//Frecueny of links
+
+            int f;//Sum of frecuencies
+            int n;//Sum of links
+
+        /* Constructors, copy control */
+
+        /*Constructors*/
+        public:
+
+            //Default constructor
+            ReprFrecLink() = default;
+
+            //Copy constructor
+            ReprFrecLink(const ReprFrecLink &cpy) = default;
+
+            //Move constructor
+            ReprFrecLink(ReprFrecLink &&) = default;
+
+        /* Methods */
+
+        /*Dictionary*/
+        public:
+
+            //Add the links from another representant to this one
+            void add(const ReprFrecLink &repr);
+
+            //Similarity between two representants (same formula as words)
+            static prob_frec similarity_repr(const ReprFrecLink &a, const ReprFrecLink &b);
+
+        /*Swapping*/
+        public:
+
+            void swap(ReprFrecLink &&mv);
+    };
+
     //Representant of a cluster
     class ClusterRepr
     {
@@ -563,9 +609,7 @@ namespace TextGun
         /*Dictionaries*/
         private:
 
-            std::map<WordNode *, int> prev,next;//Forward and backward frecuencies for each node
-
-            int f;//Sum of frecuencies
+            ReprFrecLink prev,next;//Frecuency links for previus and next words
 
         /* Constructors, copy control */
 
@@ -587,7 +631,7 @@ namespace TextGun
             void add(const ClusterRepr &repr);
 
             //Similarity between two representants (same formula as words)
-            static void similarity_repr(const ClusterRepr &a, const ClusterRepr &b);
+            static prob_frec similarity_repr(const ClusterRepr &a, const ClusterRepr &b);
 
         /*Swapping*/
         private:
